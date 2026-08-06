@@ -1,12 +1,12 @@
 import type { Route } from "./+types/home";
-import { Navbar } from "../components/navbar";
-import { HeroSection } from "../components/hero-section";
-import { ProblemSection } from "../components/problem-section";
-import { ThoughtProcessSection } from "../components/thought-process-section";
-import { SolutionSection } from "../components/solution-section";
-import { PricingSection } from "../components/pricing-section";
-import { CtaSection } from "../components/cta-section";
-import { Footer } from "../components/footer";
+import { Navbar } from "../components/landing-page/navbar";
+import { HeroSection } from "../components/landing-page/hero-section";
+import { ProblemSection } from "../components/landing-page/problem-section";
+import { ThoughtProcessSection } from "../components/landing-page/thought-process-section";
+import { SolutionSection } from "../components/landing-page/solution-section";
+import { PricingSection } from "../components/landing-page/pricing-section";
+import { CtaSection } from "../components/landing-page/cta-section";
+import { Footer } from "../components/landing-page/footer";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -51,7 +51,7 @@ export function meta({}: Route.MetaArgs) {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-stone-900 selection:bg-stone-200 selection:text-stone-900">
+    <div className="min-h-screen bg-background text-foreground selection:bg-muted selection:text-foreground">
       <Navbar />
       <main id="main-content">
         <HeroSection />
