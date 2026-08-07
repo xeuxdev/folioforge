@@ -1,12 +1,10 @@
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "../logo";
 import { Button } from "~/components/ui/button";
+import { useAuth } from "~/hooks/use-auth";
 
 export function LoginCard() {
-  const handleGoogleLogin = () => {
-    // Triggers Express Google OAuth endpoint in production/integration phase
-    window.location.href = "/api/auth/google";
-  };
+  const { loginWithGoogle } = useAuth();
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 text-foreground">
@@ -43,7 +41,7 @@ export function LoginCard() {
         <div className="space-y-4 pt-2">
           <Button
             variant="outline"
-            onClick={handleGoogleLogin}
+            onClick={loginWithGoogle}
             className="w-full py-6 text-sm font-semibold flex items-center justify-center space-x-3 cursor-pointer"
           >
             {/* Google Multicolor SVG Icon */}

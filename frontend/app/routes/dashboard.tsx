@@ -1,4 +1,5 @@
-import { Outlet } from "react-router";
+import { Outlet, type LoaderFunctionArgs } from "react-router";
+import { requireAuth } from "~/lib/auth-server";
 import { AppSidebar } from "~/components/app-sidebar";
 import {
   Breadcrumb,
@@ -14,6 +15,11 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "~/components/ui/sidebar";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  const user = await requireAuth(request);
+  return { user };
+}
 
 export default function DashboardLayout() {
   return (

@@ -1,5 +1,12 @@
 import type { Route } from "./+types/login";
+import type { LoaderFunctionArgs } from "react-router";
+import { requireAnonymous } from "~/lib/auth-server";
 import { LoginCard } from "../components/auth/login-card";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  await requireAnonymous(request);
+  return null;
+}
 
 export function meta({}: Route.MetaArgs) {
   return [

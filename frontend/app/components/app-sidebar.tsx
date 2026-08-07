@@ -23,13 +23,9 @@ import {
   Link2Icon,
 } from "lucide-react";
 import { Separator } from "./ui/separator";
+import { useAuth } from "~/hooks/use-auth";
 
 const data = {
-  user: {
-    name: "Alex Morgan",
-    email: "alex@folioforge.dev",
-    avatar: "",
-  },
   navMain: [
     {
       title: "Master Resume Graph",
@@ -83,6 +79,14 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, logout } = useAuth();
+
+  const currentUser = {
+    name: user?.name || user?.email?.split("@")[0] || "FolioForge User",
+    email: user?.email || "user@folioforge.dev",
+    avatarUrl: user?.avatarUrl || null,
+  };
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -104,7 +108,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={currentUser} onLogout={logout} />
       </SidebarFooter>
     </Sidebar>
   );

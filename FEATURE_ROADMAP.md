@@ -15,12 +15,12 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] Candidate can authenticate exclusively using "Sign in with Google".
-* [ ] Google OAuth 2.0 authorization code exchange / ID token validation verifies user identity securely.
-* [ ] First-time Google OAuth login automatically provisions user record in PostgreSQL with `google_id`, `email`, `name`, and `avatar_url`.
-* [ ] Active session token is stored in PostgreSQL and delivered to the client via `HttpOnly`, `Secure`, and `SameSite=Lax` cookies.
-* [ ] Unauthenticated API and dashboard requests are blocked and redirected to Google login.
-* [ ] Logging out invalidates the session record in PostgreSQL and clears client session cookies.
+* [x] Candidate can authenticate exclusively using "Sign in with Google".
+* [x] Google OAuth 2.0 authorization code exchange / ID token validation verifies user identity securely.
+* [x] First-time Google OAuth login automatically provisions user record in PostgreSQL with `google_id`, `email`, `name`, and `avatar_url`.
+* [x] Active session token is stored in PostgreSQL and delivered to the client via `HttpOnly`, `Secure`, and `SameSite=Lax` cookies.
+* [x] Unauthenticated API and dashboard requests are blocked and redirected to Google login.
+* [x] Logging out invalidates the session record in PostgreSQL and clears client session cookies.
 * [ ] Account deletion completely purges all associated user data, resumes, tailored CVs, and portfolios.
 
 ---
@@ -36,12 +36,12 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] User can upload PDF or DOCX resume files via drag-and-drop or file picker.
-* [ ] Background worker processes file uploads asynchronously via Redis and BullMQ.
-* [ ] Parser extracts work experience, dates, role titles, bullet points, skills, and education into structured fields.
-* [ ] Verification editor displays parsed fields with inline edit controls and error validation.
-* [ ] User can add missing entries, modify text, and reorder bullet points.
-* [ ] Saving updates the single source of truth resume record in PostgreSQL.
+* [x] User can upload PDF or DOCX resume files via drag-and-drop or file picker.
+* [x] Background worker processes file uploads asynchronously via Redis and BullMQ.
+* [x] Parser extracts work experience, dates, role titles, bullet points, skills, and education into structured fields.
+* [x] Verification editor displays parsed fields with inline edit controls and error validation.
+* [x] User can add missing entries, modify text, and reorder bullet points.
+* [x] Saving updates the single source of truth resume record in PostgreSQL.
 
 ---
 

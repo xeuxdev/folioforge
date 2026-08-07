@@ -9,6 +9,7 @@ import {
 
 import type { Route } from "./+types/root";
 import { TooltipProvider } from "~/components/ui/tooltip";
+import { QueryProvider } from "~/lib/query-provider";
 import "./app.css";
 
 export const links: Route.LinksFunction = () => [
@@ -37,7 +38,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
+        <QueryProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </QueryProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

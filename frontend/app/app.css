@@ -3,8 +3,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Inter", "Plus Jakarta Sans", sans-serif;

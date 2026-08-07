@@ -56,8 +56,6 @@ export class AuthController {
     const user = await this.authService.exchangeCodeForUser(code);
     const token = await this.authService.createSession(user.id);
 
-    console.log(token);
-
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 
     // Token delivered via hash fragment — never sent to any server in the redirect
