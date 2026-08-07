@@ -4,6 +4,7 @@ import { useResumes, type ResumeRecord } from "~/hooks/use-resumes";
 import type { CanonicalResumeGraph } from "~/types/resume";
 import { ResumeUploader } from "~/components/dashboard/resume-uploader";
 import { ResumeEditor } from "~/components/dashboard/resume-editor";
+import { ResumeSelector } from "~/components/dashboard/resume-selector";
 import { ArrowLeft, CheckCircle } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
@@ -40,11 +41,12 @@ export default function DashboardImport() {
     setOverrideActiveResume(updated);
   };
 
-  const handleDeleteResume = async () => {
-    if (!activeResume) return;
-    await deleteResume(activeResume.id);
+  const handleDeleteResume = async (idToDelete?: string) => {
+    const id = idToDelete || activeResume?.id;
+    if (!id) return;
+    await deleteResume(id);
     setOverrideActiveResume(null);
-    setIsExplicitUploadMode(true);
+    setIsExplicitUploadMode(false);
   };
 
   return (
@@ -75,10 +77,28 @@ export default function DashboardImport() {
         )}
       </div>
 
+      {resumes.length > 0 && (
+        <ResumeSelector
+          resumes={resumes}
+          selectedResumeId={activeResume?.id || null}
+          onSelectResume={(id) => {
+            const selected = resumes.find((r) => r.id === id) || null;
+            setOverrideActiveResume(selected);
+            setIsExplicitUploadMode(false);
+          }}
+          onDeleteResume={handleDeleteResume}
+          isDeleting={isDeleting}
+          onUploadClick={() => {
+            setIsExplicitUploadMode(true);
+            setOverrideActiveResume(null);
+          }}
+        />
+      )}
+
       {!activeResume ? (
         <div className="bg-card p-8 sm:p-10 rounded-xl border border-border space-y-6">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold">Select Resume Document</h2>
+            <h2 className="text-lg font-semibold">Upload Resume Document</h2>
             <p className="text-sm text-muted-foreground">
               Uploaded files are stored securely and parsed automatically into
               standard JSON schemas.
@@ -117,7 +137,7 @@ export default function DashboardImport() {
             }
             resumeTitle={activeResume.title}
             onSave={handleSaveEditor}
-            onDelete={handleDeleteResume}
+            onDelete={() => handleDeleteResume(activeResume.id)}
             isSaving={isUpdating}
             isDeleting={isDeleting}
           />
@@ -126,3 +146,4 @@ export default function DashboardImport() {
     </div>
   );
 }
+

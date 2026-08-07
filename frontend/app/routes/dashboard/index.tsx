@@ -3,6 +3,7 @@ import type { Route } from "./+types/index";
 import { useResumes } from "~/hooks/use-resumes";
 import type { CanonicalResumeGraph } from "~/types/resume";
 import { ResumeEditor } from "~/components/dashboard/resume-editor";
+import { ResumeSelector } from "~/components/dashboard/resume-selector";
 import {
   Upload,
   FileText,
@@ -21,6 +22,7 @@ import {
   AlertTriangle,
   ExternalLink,
   Edit3,
+  Check,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -52,10 +54,13 @@ export default function DashboardIndex() {
     isUpdating,
     isDeleting,
   } = useResumes();
+  const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const activeResume = resumes.length > 0 ? resumes[0] : null;
+  const activeResume =
+    resumes.find((r) => r.id === selectedResumeId) ||
+    (resumes.length > 0 ? resumes[0] : null);
   const graph = activeResume?.parsedData;
 
   const handleSaveEditor = async (
@@ -70,9 +75,14 @@ export default function DashboardIndex() {
     });
   };
 
-  const handleDeleteResume = async () => {
-    if (!activeResume) return;
-    await deleteResume(activeResume.id);
+  const handleDeleteResume = async (idToDelete?: string) => {
+    const id = idToDelete || activeResume?.id;
+    if (!id) return;
+    await deleteResume(id);
+    if (selectedResumeId === id) {
+      const remaining = resumes.filter((r) => r.id !== id);
+      setSelectedResumeId(remaining.length > 0 ? remaining[0].id : null);
+    }
     setIsDeleteDialogOpen(false);
     setIsEditing(false);
   };
@@ -102,10 +112,26 @@ export default function DashboardIndex() {
 
         <a href="/dashboard/import">
           <Button className="cursor-pointer">
-            <Upload className="w-4 h-4 mr-2" /> Upload / Update CV
+            <Upload className="w-4 h-4 mr-2" /> Upload / Add New CV
           </Button>
         </a>
       </div>
+
+      {resumes.length > 0 && (
+        <ResumeSelector
+          resumes={resumes}
+          selectedResumeId={activeResume?.id || null}
+          onSelectResume={(id) => {
+            setSelectedResumeId(id);
+            setIsEditing(false);
+          }}
+          onDeleteResume={handleDeleteResume}
+          isDeleting={isDeleting}
+          onUploadClick={() => {
+            window.location.href = "/dashboard/import";
+          }}
+        />
+      )}
 
       {!activeResume || !graph ? (
         /* Empty State */
@@ -204,7 +230,7 @@ export default function DashboardIndex() {
                 <Button
                   variant="destructive"
                   disabled={isDeleting}
-                  onClick={handleDeleteResume}
+                  onClick={() => handleDeleteResume()}
                   className="cursor-pointer"
                 >
                   {isDeleting ? "Deleting..." : "Confirm Delete"}
