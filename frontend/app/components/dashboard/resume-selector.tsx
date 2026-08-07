@@ -1,22 +1,21 @@
 import { useState } from "react";
-import type { ResumeRecord } from "~/hooks/use-resumes";
 import {
   FileText,
   ChevronDown,
-  Check,
   Trash2,
   Plus,
   AlertTriangle,
+  Check,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
 } from "~/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -27,11 +26,20 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog";
 
+export interface ResumeRecord {
+  id: string;
+  title: string;
+  originalFilename: string;
+  fileSize: number;
+  status: "pending" | "processing" | "completed" | "failed";
+  createdAt: string;
+}
+
 interface ResumeSelectorProps {
   resumes: ResumeRecord[];
-  selectedResumeId: string | null;
+  selectedResumeId?: string | null;
   onSelectResume: (id: string) => void;
-  onDeleteResume: (id: string) => Promise<void>;
+  onDeleteResume: (id: string) => Promise<void> | void;
   isDeleting?: boolean;
   onUploadClick?: () => void;
 }
@@ -44,7 +52,9 @@ export function ResumeSelector({
   isDeleting = false,
   onUploadClick,
 }: ResumeSelectorProps) {
-  const [resumeToDelete, setResumeToDelete] = useState<ResumeRecord | null>(null);
+  const [resumeToDelete, setResumeToDelete] = useState<ResumeRecord | null>(
+    null,
+  );
 
   const activeResume =
     resumes.find((r) => r.id === selectedResumeId) || resumes[0] || null;
@@ -72,7 +82,7 @@ export function ResumeSelector({
             render={
               <Button
                 variant="outline"
-                className="justify-between min-w-[220px] max-w-full sm:max-w-md h-auto py-2 px-3 cursor-pointer text-left"
+                className="justify-between min-w-55 max-w-full sm:max-w-md h-auto py-2 px-3 cursor-pointer text-left"
                 aria-label="Select resume CV to view"
               />
             }
@@ -93,7 +103,10 @@ export function ResumeSelector({
             <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0 ml-2" />
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="start" className="w-[300px] sm:w-[360px] p-2 space-y-1">
+          <DropdownMenuContent
+            align="start"
+            className="w-75 sm:w-90 p-2 space-y-1"
+          >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="text-xs text-muted-foreground font-semibold px-2 py-1">
                 Your Resume Documents ({resumes.length})
@@ -107,7 +120,9 @@ export function ResumeSelector({
                 <div
                   key={resume.id}
                   className={`flex items-center justify-between p-2 rounded-md transition-colors ${
-                    isSelected ? "bg-accent/80 text-accent-foreground font-medium" : "hover:bg-muted/70"
+                    isSelected
+                      ? "bg-accent/80 text-accent-foreground font-medium"
+                      : "hover:bg-muted/70"
                   }`}
                 >
                   <button
@@ -115,7 +130,9 @@ export function ResumeSelector({
                     onClick={() => onSelectResume(resume.id)}
                     className="flex-1 text-left flex items-start space-x-2.5 min-w-0 cursor-pointer border-none bg-transparent"
                   >
-                    <FileText className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`} />
+                    <FileText
+                      className={`w-4 h-4 mt-0.5 shrink-0 ${isSelected ? "text-primary" : "text-muted-foreground"}`}
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center space-x-1.5">
                         <span className="text-sm font-medium text-foreground truncate">
@@ -126,7 +143,8 @@ export function ResumeSelector({
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">
-                        {resume.originalFilename} &bull; {(resume.fileSize / 1024).toFixed(1)} KB
+                        {resume.originalFilename} &bull;{" "}
+                        {(resume.fileSize / 1024).toFixed(1)} KB
                       </p>
                     </div>
                   </button>
@@ -176,19 +194,6 @@ export function ResumeSelector({
             <Plus className="w-3.5 h-3.5 mr-1.5" /> Upload CV
           </Button>
         )}
-
-        {activeResume && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setResumeToDelete(activeResume)}
-            disabled={isDeleting}
-            className="text-destructive hover:bg-destructive/10 cursor-pointer text-xs"
-            aria-label="Delete active resume"
-          >
-            <Trash2 className="w-3.5 h-3.5 mr-1.5" /> Delete CV
-          </Button>
-        )}
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -203,32 +208,34 @@ export function ResumeSelector({
             <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center text-destructive mb-2">
               <AlertTriangle className="w-5 h-5" />
             </div>
-            <DialogTitle>Delete Resume?</DialogTitle>
-            <DialogDescription>
+            <DialogTitle>Delete Resume Document?</DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground leading-relaxed">
               Are you sure you want to delete{" "}
               <span className="font-semibold text-foreground">
                 &quot;{resumeToDelete?.title}&quot;
               </span>
-              ? This will remove this resume record and its parsed data from your account.
+              ? This will remove this resume record and its parsed data from
+              your account.
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="pt-4">
+          <DialogFooter className="flex space-x-2 justify-end pt-4 border-t border-border">
             <Button
               variant="outline"
-              disabled={isDeleting}
+              size="sm"
               onClick={() => setResumeToDelete(null)}
-              className="cursor-pointer"
+              className="text-xs cursor-pointer"
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
-              disabled={isDeleting}
+              size="sm"
               onClick={handleDeleteConfirm}
-              className="cursor-pointer"
+              disabled={isDeleting}
+              className="text-xs cursor-pointer"
             >
-              {isDeleting ? "Deleting..." : "Confirm Delete"}
+              {isDeleting ? "Deleting..." : "Delete Resume"}
             </Button>
           </DialogFooter>
         </DialogContent>

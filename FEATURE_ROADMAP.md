@@ -57,12 +57,12 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] User can paste a target job description to initiate tailoring.
-* [ ] LLM tailoring process adapts bullets while strictly preserving factual accuracy without inventing data.
-* [ ] Diff viewer highlights added, removed, and modified wording side-by-side with accept/reject controls per bullet.
-* [ ] Keyword match score displays extracted JD requirements vs. matched candidate skills.
-* [ ] PDF export outputs clean, single or multi-page ATS-parseable vector PDFs via `@react-pdf/renderer`.
-* [ ] DOCX export outputs valid, structured Microsoft Word files readable by ATS software.
+* [x] User can paste a target job description to initiate tailoring.
+* [x] LLM tailoring process adapts bullets while strictly preserving factual accuracy without inventing data.
+* [x] Diff viewer highlights added, removed, and modified wording side-by-side with accept/reject controls per bullet.
+* [x] Keyword match score displays extracted JD requirements vs. matched candidate skills.
+* [x] PDF export outputs clean, single or multi-page ATS-parseable vector PDFs via `@react-pdf/renderer`.
+* [x] DOCX export outputs valid, structured Microsoft Word files readable by ATS software.
 
 ---
 

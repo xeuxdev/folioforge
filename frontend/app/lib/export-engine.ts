@@ -7,6 +7,8 @@ import {
   AlignmentType,
   BorderStyle,
 } from "docx";
+import type { CanonicalResumeGraph } from "~/types/resume";
+import type { BulletDiffItem } from "~/components/dashboard/tailoring/diff-comparison-list";
 
 export interface ExportResumeData {
   fullName: string;
@@ -24,11 +26,26 @@ export interface ExportResumeData {
     location?: string;
     bullets: string[];
   }[];
+  projects?: {
+    title: string;
+    description: string;
+    technologies: string[];
+    url?: string;
+  }[];
   skills: string[];
   education: {
     degree: string;
     institution: string;
     year: string;
+  }[];
+  certifications?: {
+    name: string;
+    issuer?: string;
+    issueDate?: string;
+  }[];
+  languages?: {
+    language: string;
+    fluency?: string;
   }[];
 }
 
@@ -92,9 +109,112 @@ export const demoResumeData: ExportResumeData = {
 };
 
 /**
+ * Builds dynamic ExportResumeData from real CanonicalResumeGraph and BulletDiffItems
+ */
+export function buildExportDataFromGraph(
+  graph: CanonicalResumeGraph | null | undefined,
+  bulletDiffs?: BulletDiffItem[],
+  roleTitle?: string,
+  targetCompany?: string
+): ExportResumeData {
+  if (!graph) {
+    return {
+      ...demoResumeData,
+      roleTitle: roleTitle || demoResumeData.roleTitle,
+    };
+  }
+
+  const contact = graph.contactInfo;
+  const fullName = contact?.fullName || "Candidate Name";
+  const email = contact?.email || "";
+  const location = contact?.location || "";
+  const phone = contact?.phone || "";
+  const portfolioUrl =
+    contact?.websiteUrl || contact?.linkedinUrl || "";
+  const summary = graph.summary || "";
+
+  const experience = (graph.workExperiences || []).map((exp, eIdx) => {
+    const comp = exp.company || targetCompany || "Company";
+    const pos = exp.position || roleTitle || "Software Engineer";
+    const period = [
+      exp.startDate,
+      exp.endDate || (exp.isCurrent ? "Present" : ""),
+    ]
+      .filter(Boolean)
+      .join(" - ");
+
+    const bullets = (exp.bullets || []).map((origBullet, bIdx) => {
+      const match = (bulletDiffs || []).find(
+        (d) =>
+          d.originalText === origBullet ||
+          (d.company === comp && d.role === pos && d.id.endsWith(`-${bIdx + 1}`))
+      );
+      if (match) {
+        return match.status === "rejected" ? match.originalText : match.tailoredText;
+      }
+      return origBullet;
+    });
+
+    return {
+      company: comp,
+      role: pos,
+      period: period || "",
+      location: exp.location,
+      bullets: bullets.length > 0 ? bullets : exp.bullets || [],
+    };
+  });
+
+  const skills = graph.skills || [];
+
+  const education = (graph.education || []).map((edu) => ({
+    degree:
+      [edu.degree, edu.fieldOfStudy].filter(Boolean).join(" in ") ||
+      edu.degree ||
+      edu.institution ||
+      "Degree",
+    institution: edu.institution || "",
+    year: [edu.startDate, edu.endDate].filter(Boolean).join(" - ") || "",
+  }));
+
+  const projects = (graph.projects || []).map((p) => ({
+    title: p.title || "Project",
+    description: p.description || "",
+    technologies: p.technologies || [],
+    url: p.url,
+  }));
+
+  const certifications = (graph.certifications || []).map((c) => ({
+    name: c.name || "Certification",
+    issuer: c.issuer || "",
+    issueDate: c.issueDate || "",
+  }));
+
+  const languages = (graph.languages || []).map((l) => ({
+    language: l.language || "",
+    fluency: l.fluency || "",
+  }));
+
+  return {
+    fullName,
+    roleTitle: roleTitle || "Software Engineer",
+    email,
+    location,
+    phone,
+    portfolioUrl,
+    summary,
+    experience,
+    projects,
+    skills,
+    education,
+    certifications,
+    languages,
+  };
+}
+
+/**
  * Generates and downloads a structured ATS-friendly Microsoft Word (.docx) document
  */
-export async function downloadDocxResume(data: ExportResumeData = demoResumeData) {
+export async function downloadDocxResume(data: ExportResumeData) {
   const doc = new Document({
     sections: [
       {
@@ -128,7 +248,9 @@ export async function downloadDocxResume(data: ExportResumeData = demoResumeData
             spacing: { after: 200 },
             children: [
               new TextRun({
-                text: `${data.roleTitle} | ${data.location} | ${data.email} | ${data.portfolioUrl}`,
+                text: [data.roleTitle, data.location, data.email, data.portfolioUrl]
+                  .filter(Boolean)
+                  .join(" | "),
                 size: 20, // 10pt
                 font: "Calibri",
                 color: "444444",
@@ -137,100 +259,233 @@ export async function downloadDocxResume(data: ExportResumeData = demoResumeData
           }),
 
           // SECTION 1: Summary
-          createSectionHeading("EXECUTIVE SUMMARY"),
-          new Paragraph({
-            spacing: { after: 200 },
-            children: [
-              new TextRun({
-                text: data.summary,
-                size: 21, // 10.5pt
-                font: "Calibri",
-              }),
-            ],
-          }),
-
-          // SECTION 2: Experience
-          createSectionHeading("WORK EXPERIENCE"),
-          ...data.experience.flatMap((exp) => [
-            new Paragraph({
-              spacing: { before: 120, after: 40 },
-              children: [
-                new TextRun({
-                  text: `${exp.company} `,
-                  bold: true,
-                  size: 22,
-                  font: "Calibri",
-                }),
-                new TextRun({
-                  text: `- ${exp.role}`,
-                  bold: true,
-                  size: 22,
-                  font: "Calibri",
-                }),
-                new TextRun({
-                  text: `\t${exp.period}`,
-                  bold: true,
-                  size: 20,
-                  font: "Calibri",
-                }),
-              ],
-            }),
-            ...exp.bullets.map(
-              (bullet) =>
+          ...(data.summary
+            ? [
+                createSectionHeading("EXECUTIVE SUMMARY"),
                 new Paragraph({
-                  bullet: { level: 0 },
-                  spacing: { after: 60 },
+                  spacing: { after: 200 },
                   children: [
                     new TextRun({
-                      text: bullet,
+                      text: data.summary,
+                      size: 21, // 10.5pt
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
+
+          // SECTION 2: Experience
+          ...(data.experience.length > 0
+            ? [
+                createSectionHeading("WORK EXPERIENCE"),
+                ...data.experience.flatMap((exp) => [
+                  new Paragraph({
+                    spacing: { before: 120, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: `${exp.company} `,
+                        bold: true,
+                        size: 22,
+                        font: "Calibri",
+                      }),
+                      new TextRun({
+                        text: `- ${exp.role}`,
+                        bold: true,
+                        size: 22,
+                        font: "Calibri",
+                      }),
+                      ...(exp.period
+                        ? [
+                            new TextRun({
+                              text: `\t${exp.period}`,
+                              bold: true,
+                              size: 20,
+                              font: "Calibri",
+                            }),
+                          ]
+                        : []),
+                    ],
+                  }),
+                  ...exp.bullets.map(
+                    (bullet) =>
+                      new Paragraph({
+                        bullet: { level: 0 },
+                        spacing: { after: 60 },
+                        children: [
+                          new TextRun({
+                            text: bullet,
+                            size: 20,
+                            font: "Calibri",
+                          }),
+                        ],
+                      })
+                  ),
+                ]),
+              ]
+            : []),
+
+          // SECTION 3: Technical Skills
+          ...(data.skills.length > 0
+            ? [
+                createSectionHeading("TECHNICAL SKILLS"),
+                new Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new TextRun({
+                      text: data.skills.join(" • "),
                       size: 20,
                       font: "Calibri",
                     }),
                   ],
-                })
-            ),
-          ]),
+                }),
+              ]
+            : []),
 
-          // SECTION 3: Technical Skills
-          createSectionHeading("TECHNICAL SKILLS"),
-          new Paragraph({
-            spacing: { after: 200 },
-            children: [
-              new TextRun({
-                text: data.skills.join(" • "),
-                size: 20,
-                font: "Calibri",
-              }),
-            ],
-          }),
+          // SECTION 4: Projects
+          ...(data.projects && data.projects.length > 0
+            ? [
+                createSectionHeading("FEATURED PROJECTS"),
+                ...data.projects.flatMap((proj) => [
+                  new Paragraph({
+                    spacing: { before: 100, after: 40 },
+                    children: [
+                      new TextRun({
+                        text: proj.title,
+                        bold: true,
+                        size: 21,
+                        font: "Calibri",
+                      }),
+                      ...(proj.technologies.length > 0
+                        ? [
+                            new TextRun({
+                              text: ` (${proj.technologies.join(" • ")})`,
+                              italics: true,
+                              size: 19,
+                              font: "Calibri",
+                            }),
+                          ]
+                        : []),
+                    ],
+                  }),
+                  ...(proj.description
+                    ? [
+                        new Paragraph({
+                          spacing: { after: 100 },
+                          children: [
+                            new TextRun({
+                              text: proj.description,
+                              size: 20,
+                              font: "Calibri",
+                            }),
+                          ],
+                        }),
+                      ]
+                    : []),
+                ]),
+              ]
+            : []),
 
-          // SECTION 4: Education
-          createSectionHeading("EDUCATION"),
-          ...data.education.map(
-            (edu) =>
-              new Paragraph({
-                spacing: { after: 80 },
-                children: [
-                  new TextRun({
-                    text: `${edu.degree} `,
-                    bold: true,
-                    size: 21,
-                    font: "Calibri",
-                  }),
-                  new TextRun({
-                    text: `- ${edu.institution}`,
-                    size: 21,
-                    font: "Calibri",
-                  }),
-                  new TextRun({
-                    text: ` (${edu.year})`,
-                    size: 20,
-                    font: "Calibri",
-                    color: "555555",
-                  }),
-                ],
-              })
-          ),
+          // SECTION 5: Education
+          ...(data.education.length > 0
+            ? [
+                createSectionHeading("EDUCATION"),
+                ...data.education.map(
+                  (edu) =>
+                    new Paragraph({
+                      spacing: { after: 80 },
+                      children: [
+                        new TextRun({
+                          text: `${edu.degree} `,
+                          bold: true,
+                          size: 21,
+                          font: "Calibri",
+                        }),
+                        ...(edu.institution
+                          ? [
+                              new TextRun({
+                                text: `- ${edu.institution}`,
+                                size: 21,
+                                font: "Calibri",
+                              }),
+                            ]
+                          : []),
+                        ...(edu.year
+                          ? [
+                              new TextRun({
+                                text: ` (${edu.year})`,
+                                size: 20,
+                                font: "Calibri",
+                                color: "555555",
+                              }),
+                            ]
+                          : []),
+                      ],
+                    })
+                ),
+              ]
+            : []),
+
+          // SECTION 6: Certifications
+          ...(data.certifications && data.certifications.length > 0
+            ? [
+                createSectionHeading("CERTIFICATIONS"),
+                ...data.certifications.map(
+                  (cert) =>
+                    new Paragraph({
+                      spacing: { after: 80 },
+                      children: [
+                        new TextRun({
+                          text: `${cert.name} `,
+                          bold: true,
+                          size: 21,
+                          font: "Calibri",
+                        }),
+                        ...(cert.issuer
+                          ? [
+                              new TextRun({
+                                text: `- ${cert.issuer}`,
+                                size: 21,
+                                font: "Calibri",
+                              }),
+                            ]
+                          : []),
+                        ...(cert.issueDate
+                          ? [
+                              new TextRun({
+                                text: ` (${cert.issueDate})`,
+                                size: 20,
+                                font: "Calibri",
+                                color: "555555",
+                              }),
+                            ]
+                          : []),
+                      ],
+                    })
+                ),
+              ]
+            : []),
+
+          // SECTION 7: Languages
+          ...(data.languages && data.languages.length > 0
+            ? [
+                createSectionHeading("LANGUAGES"),
+                new Paragraph({
+                  spacing: { after: 200 },
+                  children: [
+                    new TextRun({
+                      text: data.languages
+                        .map((l) =>
+                          l.fluency ? `${l.language} (${l.fluency})` : l.language
+                        )
+                        .join(" • "),
+                      size: 20,
+                      font: "Calibri",
+                    }),
+                  ],
+                }),
+              ]
+            : []),
         ],
       },
     ],
@@ -277,9 +532,19 @@ function createSectionHeading(title: string): Paragraph {
 /**
  * Generates and downloads/prints a clean single-column ATS vector PDF stream
  */
-export function downloadPdfResume(data: ExportResumeData = demoResumeData) {
+export function downloadPdfResume(data: ExportResumeData) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
+
+  const contactLine = [
+    data.roleTitle,
+    data.location,
+    data.email,
+    data.phone,
+    data.portfolioUrl,
+  ]
+    .filter(Boolean)
+    .join(" &bull; ");
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -341,7 +606,7 @@ export function downloadPdfResume(data: ExportResumeData = demoResumeData) {
       margin-bottom: 3px;
     }
     .exp-period {
-      font-weight: font-mono font-normal;
+      font-weight: normal;
       color: #4b5563;
       font-size: 9.5pt;
     }
@@ -367,12 +632,21 @@ export function downloadPdfResume(data: ExportResumeData = demoResumeData) {
 <body>
   <div class="header">
     <h1>${data.fullName}</h1>
-    <p>${data.roleTitle} &bull; ${data.location} &bull; ${data.email} &bull; ${data.portfolioUrl}</p>
+    <p>${contactLine}</p>
   </div>
 
+  ${
+    data.summary
+      ? `
   <div class="section-title">Executive Summary</div>
   <p style="margin: 0 0 10px 0; font-size: 10pt;">${data.summary}</p>
+  `
+      : ""
+  }
 
+  ${
+    data.experience.length > 0
+      ? `
   <div class="section-title">Work Experience</div>
   ${data.experience
     .map(
@@ -380,7 +654,7 @@ export function downloadPdfResume(data: ExportResumeData = demoResumeData) {
     <div class="exp-item">
       <div class="exp-header">
         <span>${exp.company} — ${exp.role}</span>
-        <span class="exp-period">${exp.period}</span>
+        ${exp.period ? `<span class="exp-period">${exp.period}</span>` : ""}
       </div>
       <ul>
         ${exp.bullets.map((b) => `<li>${b}</li>`).join("")}
@@ -389,20 +663,87 @@ export function downloadPdfResume(data: ExportResumeData = demoResumeData) {
   `
     )
     .join("")}
+  `
+      : ""
+  }
 
-  <div class="section-title">Technical Skills</div>
+  ${
+    data.skills.length > 0
+      ? `
+  <div class="section-title">Technical Skills & Core Competencies</div>
   <p class="skills-text">${data.skills.join(" • ")}</p>
+  `
+      : ""
+  }
 
+  ${
+    data.projects && data.projects.length > 0
+      ? `
+  <div class="section-title">Featured Projects</div>
+  ${data.projects
+    .map(
+      (p) => `
+    <div style="margin-bottom: 8px;">
+      <div style="font-weight: bold; font-size: 10pt;">
+        ${p.title}${p.technologies.length > 0 ? ` <em>(${p.technologies.join(" • ")})</em>` : ""}
+      </div>
+      ${p.description ? `<p style="margin: 2px 0 0 0; font-size: 9.5pt; color: #374151;">${p.description}</p>` : ""}
+    </div>
+  `
+    )
+    .join("")}
+  `
+      : ""
+  }
+
+  ${
+    data.education.length > 0
+      ? `
   <div class="section-title">Education</div>
   ${data.education
     .map(
       (edu) => `
     <p style="margin: 0 0 4px 0; font-size: 10pt;">
-      <strong>${edu.degree}</strong> — ${edu.institution} (${edu.year})
+      <strong>${edu.degree}</strong>${edu.institution ? ` — ${edu.institution}` : ""}${
+        edu.year ? ` (${edu.year})` : ""
+      }
     </p>
   `
     )
     .join("")}
+  `
+      : ""
+  }
+
+  ${
+    data.certifications && data.certifications.length > 0
+      ? `
+  <div class="section-title">Certifications</div>
+  ${data.certifications
+    .map(
+      (c) => `
+    <p style="margin: 0 0 4px 0; font-size: 10pt;">
+      <strong>${c.name}</strong>${c.issuer ? ` — ${c.issuer}` : ""}${c.issueDate ? ` (${c.issueDate})` : ""}
+    </p>
+  `
+    )
+    .join("")}
+  `
+      : ""
+  }
+
+  ${
+    data.languages && data.languages.length > 0
+      ? `
+  <div class="section-title">Languages</div>
+  <p class="skills-text">
+    ${data.languages
+      .map((l) => (l.fluency ? `${l.language} (${l.fluency})` : l.language))
+      .join(" • ")}
+  </p>
+  `
+      : ""
+  }
 
   <script>
     window.onload = function() {

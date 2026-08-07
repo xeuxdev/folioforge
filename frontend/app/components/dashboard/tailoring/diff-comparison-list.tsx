@@ -26,13 +26,11 @@ export interface BulletDiffItem {
 interface DiffComparisonListProps {
   diffs: BulletDiffItem[];
   onUpdateDiffs: (diffs: BulletDiffItem[]) => void;
-  onOpenPdfPreview: () => void;
 }
 
 export function DiffComparisonList({
   diffs,
   onUpdateDiffs,
-  onOpenPdfPreview,
 }: DiffComparisonListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
@@ -112,14 +110,6 @@ export function DiffComparisonList({
           >
             <CheckCheck className="mr-1 w-3 h-3 text-emerald-600" />
             Approve All
-          </Button>
-          <Button
-            size="xs"
-            onClick={onOpenPdfPreview}
-            className="text-xs font-semibold"
-          >
-            <Sparkles className="mr-1 w-3 h-3" />
-            Preview & Export ATS PDF
           </Button>
         </div>
       </div>

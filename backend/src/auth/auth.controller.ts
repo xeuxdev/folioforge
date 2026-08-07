@@ -6,7 +6,6 @@ import {
   Redirect,
   Res,
   UseGuards,
-  UnauthorizedException,
   HttpCode,
   HttpStatus,
   Req,
@@ -35,31 +34,46 @@ export class AuthController {
   /**
    * GET /api/v1/auth/google/callback
    * Google redirects here with a one-time code. We exchange it for tokens,
-   * upsert the user, create a session, then redirect to the frontend with
-   * the Bearer token in the URL hash (never hits the server, not in logs).
+   * upsert the user, create a session, then redirect to the frontend.
    *
-   * Frontend reads: window.location.hash → strips "#token=" → stores token
-   * in memory or sessionStorage → removes hash from URL.
+   * On Success: Redirects to `${frontendUrl}/auth/callback#token=${token}`
+   * On Error: Redirects to `${frontendUrl}/auth/callback?error=${code}&message=${message}`
    */
   @Get('google/callback')
   async googleCallback(
     @Query('code') code: string,
     @Query('error') error: string | undefined,
+    @Query('error_description') errorDescription: string | undefined,
     @Res() res: Response,
   ): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+
     if (error || !code) {
-      throw new UnauthorizedException(
-        error ?? 'Missing authorization code from Google',
+      const errCode = encodeURIComponent(error ?? 'access_denied');
+      const errMsg = encodeURIComponent(
+        errorDescription ??
+          error ??
+          'Google authentication was cancelled or failed.',
+      );
+      return res.redirect(
+        `${frontendUrl}/auth/callback?error=${errCode}&message=${errMsg}`,
       );
     }
 
-    const user = await this.authService.exchangeCodeForUser(code);
-    const token = await this.authService.createSession(user.id);
+    try {
+      const user = await this.authService.exchangeCodeForUser(code);
+      const token = await this.authService.createSession(user.id);
 
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
-
-    // Token delivered via hash fragment — never sent to any server in the redirect
-    res.redirect(`${frontendUrl}/auth/callback#token=${token}`);
+      return res.redirect(`${frontendUrl}/auth/callback#token=${token}`);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Authentication failed';
+      const errCode = encodeURIComponent('auth_failed');
+      const errMsg = encodeURIComponent(message);
+      return res.redirect(
+        `${frontendUrl}/auth/callback?error=${errCode}&message=${errMsg}`,
+      );
+    }
   }
 
   /**
@@ -82,7 +96,6 @@ export class AuthController {
   @UseGuards(SessionGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Req() req: Request): Promise<void> {
-    // sessionToken is attached by SessionGuard — no need to re-parse header
     await this.authService.deleteSession(req.sessionToken!);
   }
 }

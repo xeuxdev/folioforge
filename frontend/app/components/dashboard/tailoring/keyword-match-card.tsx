@@ -1,24 +1,21 @@
 import { useState } from "react";
-import {
-  CheckCircle2,
-  AlertCircle,
-  Plus,
-  FileSpreadsheet,
-  Download,
-} from "lucide-react";
+import { CheckCircle2, AlertCircle, Plus, Eye, Download } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { downloadDocxResume, downloadPdfResume } from "~/lib/export-engine";
 
 interface KeywordMatchCardProps {
   matchedKeywords: string[];
   missingKeywords: string[];
   onAddMissingSkill?: (skill: string) => void;
+  onOpenPreview?: () => void;
+  onExport?: () => void;
 }
 
 export function KeywordMatchCard({
   matchedKeywords,
   missingKeywords,
   onAddMissingSkill,
+  onOpenPreview,
+  onExport,
 }: KeywordMatchCardProps) {
   const [addedSkills, setAddedSkills] = useState<string[]>([]);
 
@@ -52,24 +49,15 @@ export function KeywordMatchCard({
           </p>
         </div>
 
-        {/* Export Action Buttons */}
+        {/* Action Buttons: Preview & Export */}
         <div className="flex items-center space-x-2 shrink-0">
           <Button
-            variant="outline"
             size="sm"
-            onClick={() => downloadDocxResume()}
+            onClick={onOpenPreview}
             className="text-xs font-semibold cursor-pointer"
           >
-            <FileSpreadsheet className="mr-1.5 w-3.5 h-3.5" />
-            Export DOCX
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => downloadPdfResume()}
-            className="text-xs font-semibold cursor-pointer"
-          >
-            <Download className="mr-1.5 w-3.5 h-3.5" />
-            Download ATS PDF
+            <Eye className="mr-1.5 w-3.5 h-3.5" />
+            Preview & Export
           </Button>
         </div>
       </div>

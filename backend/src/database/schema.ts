@@ -43,3 +43,21 @@ export const resumes = pgTable('resumes', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+export const tailoredResumes = pgTable('tailored_resumes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  masterResumeId: uuid('master_resume_id').references(() => resumes.id, {
+    onDelete: 'set null',
+  }),
+  targetRole: text('target_role').notNull(),
+  targetCompany: text('target_company').notNull(),
+  jobDescription: text('job_description').notNull(),
+  matchedKeywords: jsonb('matched_keywords').notNull(),
+  missingKeywords: jsonb('missing_keywords').notNull(),
+  bulletDiffs: jsonb('bullet_diffs').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
