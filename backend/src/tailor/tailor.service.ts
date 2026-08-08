@@ -188,7 +188,9 @@ export class TailorService {
     const finalTargetCompany =
       isGenericCompany && resolvedCompany
         ? resolvedCompany
-        : params.targetCompany.trim() || resolvedCompany || 'Target Organization';
+        : params.targetCompany.trim() ||
+          resolvedCompany ||
+          'Target Organization';
 
     const inserted = await this.db
       .insert(tailoredResumes)

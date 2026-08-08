@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ResumesModule } from './resumes/resumes.module';
 import { TailorModule } from './tailor/tailor.module';
+import { PortfolioModule } from './portfolio/portfolio.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -39,6 +40,7 @@ import { AppService } from './app.service';
     AuthModule,
     ResumesModule,
     TailorModule,
+    PortfolioModule,
   ],
   controllers: [AppController],
   providers: [AppService],

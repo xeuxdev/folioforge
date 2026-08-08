@@ -8,7 +8,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { MinimalTemplate } from "../portfolio/minimal-template";
+import { MinimalTemplate, type PortfolioData, defaultPortfolioData } from "../portfolio/minimal-template";
 import { ExecutiveTemplate } from "../portfolio/executive-template";
 
 interface PortfolioPreviewModalProps {
@@ -16,6 +16,7 @@ interface PortfolioPreviewModalProps {
   onClose: () => void;
   template: "minimal" | "executive";
   onSelectTemplate: (template: "minimal" | "executive") => void;
+  data?: PortfolioData;
 }
 
 export function PortfolioPreviewModal({
@@ -23,6 +24,7 @@ export function PortfolioPreviewModal({
   onClose,
   template,
   onSelectTemplate,
+  data = defaultPortfolioData,
 }: PortfolioPreviewModalProps) {
   const [deviceView, setDeviceView] = useState<"desktop" | "tablet" | "mobile">(
     "desktop",
@@ -116,9 +118,9 @@ export function PortfolioPreviewModal({
             }`}
           >
             {template === "minimal" ? (
-              <MinimalTemplate username="alex" />
+              <MinimalTemplate data={data} username="preview" />
             ) : (
-              <ExecutiveTemplate username="alex" />
+              <ExecutiveTemplate data={data} username="preview" />
             )}
           </div>
         </div>

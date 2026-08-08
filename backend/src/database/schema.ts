@@ -1,4 +1,5 @@
 import {
+  boolean,
   jsonb,
   integer,
   pgTable,
@@ -13,6 +14,7 @@ export const users = pgTable('users', {
   googleId: text('google_id').unique(),
   name: text('name').notNull(),
   avatarUrl: text('avatar_url'),
+  username: text('username').unique(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -58,6 +60,23 @@ export const tailoredResumes = pgTable('tailored_resumes', {
   matchedKeywords: jsonb('matched_keywords').notNull(),
   missingKeywords: jsonb('missing_keywords').notNull(),
   bulletDiffs: jsonb('bullet_diffs').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const portfolios = pgTable('portfolios', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  selectedTemplate: text('selected_template').notNull().default('minimal'), // 'minimal' | 'executive'
+  subdomain: text('subdomain'),
+  llmTxtEnabled: boolean('llm_txt_enabled').notNull().default(true),
+  /** The resume whose parsed data drives this user's portfolio. Null = auto (latest). */
+  selectedResumeId: uuid('selected_resume_id').references(() => resumes.id, {
+    onDelete: 'set null',
+  }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

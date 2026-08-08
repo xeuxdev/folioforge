@@ -1,0 +1,2 @@
+ALTER TABLE "portfolios" ADD COLUMN "selected_resume_id" uuid;--> statement-breakpoint
+ALTER TABLE "portfolios" ADD CONSTRAINT "portfolios_selected_resume_id_resumes_id_fk" FOREIGN KEY ("selected_resume_id") REFERENCES "public"."resumes"("id") ON DELETE set null ON UPDATE no action;
