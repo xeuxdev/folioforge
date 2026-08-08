@@ -45,6 +45,8 @@ export interface AnalyzeJobParams {
 export interface UpdateTailorParams {
   id: string;
   userId: string;
+  targetRole?: string;
+  targetCompany?: string;
   matchedKeywords?: string[];
   missingKeywords?: string[];
   bulletDiffs?: BulletDiffItem[];
@@ -153,21 +155,48 @@ export class TailorService {
     const parsedGraph =
       (masterResumeRecord?.parsedData as ParsedResumeGraphData | null) || null;
 
-    const { matchedKeywords, missingKeywords, bulletDiffs } =
-      await this.processTailoringWithLLM(
-        params.targetRole,
-        params.targetCompany,
-        params.jobDescription,
-        parsedGraph,
-      );
+    const {
+      targetRole: resolvedRole,
+      targetCompany: resolvedCompany,
+      matchedKeywords,
+      missingKeywords,
+      bulletDiffs,
+    } = await this.processTailoringWithLLM(
+      params.targetRole,
+      params.targetCompany,
+      params.jobDescription,
+      parsedGraph,
+    );
+
+    const isGenericRole =
+      !params.targetRole ||
+      params.targetRole.trim() === '' ||
+      params.targetRole.trim().toLowerCase() === 'target role' ||
+      params.targetRole.trim().toLowerCase() === 'senior full-stack engineer';
+
+    const isGenericCompany =
+      !params.targetCompany ||
+      params.targetCompany.trim() === '' ||
+      params.targetCompany.trim().toLowerCase() === 'target company' ||
+      params.targetCompany.trim().toLowerCase() === 'xeux labs';
+
+    const finalTargetRole =
+      isGenericRole && resolvedRole
+        ? resolvedRole
+        : params.targetRole.trim() || resolvedRole || 'Target Position';
+
+    const finalTargetCompany =
+      isGenericCompany && resolvedCompany
+        ? resolvedCompany
+        : params.targetCompany.trim() || resolvedCompany || 'Target Organization';
 
     const inserted = await this.db
       .insert(tailoredResumes)
       .values({
         userId: params.userId,
         masterResumeId: masterResumeRecord?.id || null,
-        targetRole: params.targetRole,
-        targetCompany: params.targetCompany,
+        targetRole: finalTargetRole,
+        targetCompany: finalTargetCompany,
         jobDescription: params.jobDescription,
         matchedKeywords,
         missingKeywords,
@@ -325,6 +354,12 @@ export class TailorService {
       updatedAt: new Date(),
     };
 
+    if (params.targetRole) {
+      updatePayload.targetRole = params.targetRole;
+    }
+    if (params.targetCompany) {
+      updatePayload.targetCompany = params.targetCompany;
+    }
     if (params.matchedKeywords) {
       updatePayload.matchedKeywords = params.matchedKeywords;
     }
@@ -697,6 +732,8 @@ export class TailorService {
     parsedGraph: ParsedResumeGraphData | null,
     acceptedMap?: Map<string, string>,
   ): Promise<{
+    targetRole?: string;
+    targetCompany?: string;
     matchedKeywords: string[];
     missingKeywords: string[];
     bulletDiffs: BulletDiffItem[];
@@ -721,7 +758,7 @@ export class TailorService {
           {
             role: 'system',
             content:
-              'You are an expert ATS career tailoring assistant. Extract key skills from the job description, match them against candidate profile, and re-align experience bullets WITHOUT inventing fake claims, dates, or companies. IMPORTANT: The candidate has ALREADY accepted modifications for the bullet statements listed in `acceptedList`. DO NOT revert or change these accepted statements; preserve them as accepted statements. Focus on optimizing remaining un-tailored bullets. Return a JSON object formatted with: { "matchedKeywords": string[], "missingKeywords": string[], "bulletDiffs": Array<{ "id": string, "company": string, "role": string, "originalText": string, "tailoredText": string, "addedPhrase": string, "matchedKeywords": string[], "status": "pending" | "accepted" }> }',
+              'You are an expert ATS career tailoring assistant. Extract key skills from the job description, match them against candidate profile, and re-align experience bullets WITHOUT inventing fake claims, dates, or companies. IMPORTANT: If `targetRole` or `targetCompany` provided in user payload is generic (such as "Target Role", "Target Company", empty, or generic fallback), extract the real position title and hiring company name directly from the job description text or link. The candidate has ALREADY accepted modifications for the bullet statements listed in `acceptedList`. DO NOT revert or change these accepted statements; preserve them as accepted statements. Focus on optimizing remaining un-tailored bullets. Return a JSON object formatted with: { "targetRole": string, "targetCompany": string, "matchedKeywords": string[], "missingKeywords": string[], "bulletDiffs": Array<{ "id": string, "company": string, "role": string, "originalText": string, "tailoredText": string, "addedPhrase": string, "matchedKeywords": string[], "status": "pending" | "accepted" }> }',
           },
           {
             role: 'user',
@@ -745,6 +782,8 @@ export class TailorService {
       }
 
       const parsed = JSON.parse(content) as {
+        targetRole?: string;
+        targetCompany?: string;
         matchedKeywords?: string[];
         missingKeywords?: string[];
         bulletDiffs?: BulletDiffItem[];
@@ -757,6 +796,8 @@ export class TailorService {
       }
 
       return {
+        targetRole: parsed.targetRole,
+        targetCompany: parsed.targetCompany,
         matchedKeywords: parsed.matchedKeywords || [],
         missingKeywords: parsed.missingKeywords || [],
         bulletDiffs: parsed.bulletDiffs || [],

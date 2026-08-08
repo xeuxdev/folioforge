@@ -26,14 +26,8 @@ import {
   DialogFooter,
 } from "~/components/ui/dialog";
 
-export interface ResumeRecord {
-  id: string;
-  title: string;
-  originalFilename: string;
-  fileSize: number;
-  status: "pending" | "processing" | "completed" | "failed";
-  createdAt: string;
-}
+import type { ResumeRecord } from "~/hooks/use-resumes";
+export type { ResumeRecord };
 
 interface ResumeSelectorProps {
   resumes: ResumeRecord[];

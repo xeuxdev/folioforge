@@ -25,6 +25,8 @@ interface AnalyzeBody {
 }
 
 interface UpdateBody {
+  targetRole?: string;
+  targetCompany?: string;
   matchedKeywords?: string[];
   missingKeywords?: string[];
   bulletDiffs?: BulletDiffItem[];
@@ -72,6 +74,8 @@ export class TailorController {
     return this.tailorService.updateTailoredRecord({
       id,
       userId: user.id,
+      targetRole: body.targetRole,
+      targetCompany: body.targetCompany,
       matchedKeywords: body.matchedKeywords,
       missingKeywords: body.missingKeywords,
       bulletDiffs: body.bulletDiffs,

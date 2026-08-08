@@ -65,6 +65,8 @@ export function useTailor() {
     ApiError,
     {
       id: string;
+      targetRole?: string;
+      targetCompany?: string;
       matchedKeywords?: string[];
       missingKeywords?: string[];
       bulletDiffs?: BulletDiffItem[];
