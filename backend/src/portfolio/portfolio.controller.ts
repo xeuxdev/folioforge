@@ -1,8 +1,11 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
+  Delete,
   Param,
+  Query,
   Body,
   UseGuards,
   HttpCode,
@@ -18,6 +21,8 @@ import type {
   PortfolioPreferencesDto,
   PublicPortfolioDto,
   UpdatePortfolioPreferencesDto,
+  SetCustomDomainDto,
+  CustomDomainVerificationResultDto,
 } from './dto/portfolio.dto';
 import type { CanonicalResumeGraph } from '../parser/parser.service';
 
@@ -33,6 +38,14 @@ export class PortfolioController {
     @Param('username') username: string,
   ): Promise<PublicPortfolioDto> {
     return this.portfolioService.getPublicPortfolio(username);
+  }
+
+  /** Resolves a public portfolio payload by custom domain name. */
+  @Get('domain/resolve')
+  async getPublicPortfolioByCustomDomain(
+    @Query('domain') domain: string,
+  ): Promise<PublicPortfolioDto> {
+    return this.portfolioService.getPublicPortfolioByCustomDomain(domain);
   }
 
   /**
@@ -84,6 +97,37 @@ export class PortfolioController {
     @Body() body: UpdatePortfolioPreferencesDto,
   ): Promise<PortfolioPreferencesDto> {
     return this.portfolioService.updatePreferences(user.id, body);
+  }
+
+  /** Sets a custom domain for the user's portfolio. */
+  @Post('domain')
+  @UseGuards(SessionGuard)
+  @HttpCode(HttpStatus.OK)
+  async setCustomDomain(
+    @CurrentUser() user: User,
+    @Body() body: SetCustomDomainDto,
+  ): Promise<PortfolioPreferencesDto> {
+    return this.portfolioService.setCustomDomain(user.id, body.customDomain);
+  }
+
+  /** Triggers DNS verification for the user's custom domain. */
+  @Post('domain/verify')
+  @UseGuards(SessionGuard)
+  @HttpCode(HttpStatus.OK)
+  async verifyCustomDomain(
+    @CurrentUser() user: User,
+  ): Promise<CustomDomainVerificationResultDto> {
+    return this.portfolioService.verifyCustomDomain(user.id);
+  }
+
+  /** Removes custom domain binding from user portfolio. */
+  @Delete('domain')
+  @UseGuards(SessionGuard)
+  @HttpCode(HttpStatus.OK)
+  async removeCustomDomain(
+    @CurrentUser() user: User,
+  ): Promise<PortfolioPreferencesDto> {
+    return this.portfolioService.removeCustomDomain(user.id);
   }
 
   // ─── Private helpers ───────────────────────────────────────────────────────

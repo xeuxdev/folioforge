@@ -11,16 +11,18 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const username = params.username;
 
   try {
-    // Forward cookies so the API proxy can pass them through
     const cookieHeader = request.headers.get("Cookie") ?? "";
     const backendUrl = process.env.BACKEND_URL ?? "http://localhost:8080";
 
-    const res = await fetch(
-      `${backendUrl}/api/v1/portfolio/u/${username}`,
-      {
-        headers: { Cookie: cookieHeader },
-      },
-    );
+    // If param contains a dot (e.g., alexsmith.com), resolve via custom domain endpoint
+    const isDomain = username && username.includes(".");
+    const endpoint = isDomain
+      ? `${backendUrl}/api/v1/portfolio/domain/resolve?domain=${encodeURIComponent(username)}`
+      : `${backendUrl}/api/v1/portfolio/u/${username}`;
+
+    const res = await fetch(endpoint, {
+      headers: { Cookie: cookieHeader },
+    });
 
     if (!res.ok) {
       return { portfolio: null as PublicPortfolioPayload | null };

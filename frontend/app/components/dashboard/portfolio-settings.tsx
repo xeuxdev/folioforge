@@ -16,6 +16,10 @@ import {
   Pin,
   PinOff,
   Sliders,
+  Server,
+  ShieldCheck,
+  AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -27,8 +31,20 @@ import { canonicalToPortfolioData } from "~/lib/portfolio-adapter";
 import { defaultPortfolioData } from "~/components/portfolio/minimal-template";
 
 export function PortfolioSettings() {
-  const { preferences, isLoading, updatePreferences, isUpdating } =
-    usePortfolioPreferences();
+  const {
+    preferences,
+    isLoading,
+    updatePreferences,
+    isUpdating,
+    setCustomDomain,
+    isSettingDomain,
+    verifyCustomDomain,
+    isVerifyingDomain,
+    verifyDomainResult,
+    removeCustomDomain,
+    isRemovingDomain,
+  } = usePortfolioPreferences();
+
   const { user } = useAuth();
   const { resumes } = useResumes();
 
@@ -36,10 +52,14 @@ export function PortfolioSettings() {
     "minimal" | "executive"
   >("minimal");
   const [subdomain, setSubdomain] = useState<string>("");
+  const [customDomainInput, setCustomDomainInput] = useState<string>("");
   const [llmTxtEnabled, setLlmTxtEnabled] = useState<boolean>(true);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [copiedTxtToken, setCopiedTxtToken] = useState<boolean>(false);
+  const [copiedCnameValue, setCopiedCnameValue] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [domainMessage, setDomainMessage] = useState<string | null>(null);
 
   // Modal preview state
   const [previewTemplate, setPreviewTemplate] = useState<
@@ -57,6 +77,7 @@ export function PortfolioSettings() {
       );
       setLlmTxtEnabled(preferences.llmTxtEnabled);
       setSelectedResumeId(preferences.selectedResumeId ?? null);
+      setCustomDomainInput(preferences.customDomain ?? "");
     }
   }, [preferences, user?.name]);
 
@@ -83,17 +104,26 @@ export function PortfolioSettings() {
     ? `${subdomain}.folioforge.com`
     : "your-subdomain.folioforge.com";
 
-  // Build visit URL - passing selected template as query param preview if desired
-  const visitUrl = subdomain ? `/u/${subdomain}` : "#";
+  const activeCustomDomain = preferences?.customDomain ?? null;
+  const domainStatus = preferences?.domainVerificationStatus ?? "unverified";
+  const verificationToken = preferences?.domainVerificationToken ?? null;
+
+  const visitUrl = activeCustomDomain
+    ? `https://${activeCustomDomain}`
+    : subdomain
+      ? `/u/${subdomain}`
+      : "#";
 
   const copyUrl = () => {
-    const fullUrl = `https://${fullDomain}`;
-    navigator.clipboard.writeText(fullUrl);
+    const targetUrl = activeCustomDomain
+      ? `https://${activeCustomDomain}`
+      : `https://${fullDomain}`;
+    navigator.clipboard.writeText(targetUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const handleSave = async () => {
+  const handleSavePreferences = async () => {
     await updatePreferences({
       selectedTemplate,
       subdomain,
@@ -102,6 +132,41 @@ export function PortfolioSettings() {
     });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
+  };
+
+  const handleSetCustomDomain = async () => {
+    if (!customDomainInput.trim()) return;
+    setDomainMessage(null);
+    try {
+      await setCustomDomain({ customDomain: customDomainInput.trim() });
+      setDomainMessage("Custom domain saved. Please configure DNS records below and verify.");
+    } catch (err: unknown) {
+      const errStr = err instanceof Error ? err.message : "Failed to set custom domain";
+      setDomainMessage(`Error: ${errStr}`);
+    }
+  };
+
+  const handleVerifyCustomDomain = async () => {
+    setDomainMessage(null);
+    try {
+      const res = await verifyCustomDomain();
+      setDomainMessage(res.message);
+    } catch (err: unknown) {
+      const errStr = err instanceof Error ? err.message : "Verification failed";
+      setDomainMessage(`Verification error: ${errStr}`);
+    }
+  };
+
+  const handleRemoveCustomDomain = async () => {
+    setDomainMessage(null);
+    try {
+      await removeCustomDomain();
+      setCustomDomainInput("");
+      setDomainMessage("Custom domain binding removed.");
+    } catch (err: unknown) {
+      const errStr = err instanceof Error ? err.message : "Failed to remove domain";
+      setDomainMessage(`Error: ${errStr}`);
+    }
   };
 
   if (isLoading) {
@@ -132,7 +197,7 @@ export function PortfolioSettings() {
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-xl">
-                Your portfolio is live at your custom domain and updates instantly when saved.
+                Your portfolio is live and automatically updates when you save changes below.
               </p>
             </div>
           </div>
@@ -172,7 +237,9 @@ export function PortfolioSettings() {
         <div className="bg-muted/40 border border-border p-3.5 rounded-xl flex items-center justify-between text-xs font-mono">
           <div className="flex items-center space-x-2 truncate">
             <span className="text-muted-foreground">URL:</span>
-            <span className="font-bold text-foreground truncate">https://{fullDomain}</span>
+            <span className="font-bold text-foreground truncate">
+              {activeCustomDomain ? `https://${activeCustomDomain}` : `https://${fullDomain}`}
+            </span>
           </div>
           <span className="text-[11px] text-muted-foreground bg-card border border-border px-2.5 py-1 rounded-md capitalize font-sans font-semibold shrink-0">
             Theme: {selectedTemplate}
@@ -340,7 +407,6 @@ export function PortfolioSettings() {
                 </p>
               </div>
 
-              {/* Layout Thumbnail Mockup */}
               <div className="bg-muted/50 p-4 rounded-xl border border-border text-xs space-y-2.5 font-sans">
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <span className="font-bold text-foreground">{portfolioData.fullName}</span>
@@ -409,7 +475,6 @@ export function PortfolioSettings() {
                 </p>
               </div>
 
-              {/* Layout Thumbnail Mockup */}
               <div className="bg-muted/50 p-4 rounded-xl border border-border text-xs space-y-2.5 font-sans">
                 <div className="flex items-center justify-between border-b border-border pb-2">
                   <span className="font-extrabold text-foreground text-sm">{portfolioData.roleTitle}</span>
@@ -455,10 +520,10 @@ export function PortfolioSettings() {
             </div>
             <div>
               <h3 className="text-base font-bold text-foreground">
-                Domain &amp; Machine-Readable Export
+                Subdomain &amp; Machine-Readable Export
               </h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Configure your custom subdomain handle and AI /llm.txt endpoint.
+                Configure your default FolioForge subdomain handle and AI /llm.txt endpoint.
               </p>
             </div>
           </div>
@@ -466,7 +531,7 @@ export function PortfolioSettings() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-1.5">
-            <Label className="text-xs font-semibold text-foreground">Custom Subdomain</Label>
+            <Label className="text-xs font-semibold text-foreground">Subdomain Handle</Label>
             <div className="flex items-center rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs">
               <span className="text-muted-foreground font-mono">https://</span>
               <input
@@ -538,6 +603,201 @@ ${portfolioData.bio}`}
         </div>
       </div>
 
+      {/* ── Step 4: Bring Your Own Custom Domain ── */}
+      <div className="bg-card border border-border p-6 sm:p-8 rounded-2xl space-y-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-xs font-mono">
+              04
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-base font-bold text-foreground">
+                  Bring Your Own Custom Domain
+                </h3>
+                {domainStatus === "verified" && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <ShieldCheck className="w-3 h-3 mr-1 text-emerald-600" />
+                    Verified &amp; Active
+                  </span>
+                )}
+                {domainStatus === "pending" && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin text-amber-600" />
+                    DNS Pending
+                  </span>
+                )}
+                {domainStatus === "failed" && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-red-50 text-red-800 border border-red-200">
+                    <AlertCircle className="w-3 h-3 mr-1 text-red-600" />
+                    Verification Failed
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Connect your personal custom domain (e.g., <code className="font-mono text-foreground font-semibold">alexsmith.com</code> or <code className="font-mono text-foreground font-semibold">cv.alexsmith.com</code>).
+              </p>
+            </div>
+          </div>
+
+          {activeCustomDomain && (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={handleRemoveCustomDomain}
+              disabled={isRemovingDomain}
+              className="text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer shrink-0"
+            >
+              {isRemovingDomain ? (
+                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+              ) : (
+                <Trash2 className="w-3 h-3 mr-1" />
+              )}
+              Remove Custom Domain
+            </Button>
+          )}
+        </div>
+
+        {/* Input & Action Bar */}
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div className="flex-1 rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs flex items-center">
+              <Server className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+              <input
+                value={customDomainInput}
+                onChange={(e) => setCustomDomainInput(e.target.value)}
+                placeholder="e.g. alexsmith.com or cv.alexsmith.com"
+                aria-label="Custom domain input"
+                className="bg-transparent font-mono font-semibold text-foreground focus:outline-none flex-1 min-w-0"
+              />
+            </div>
+
+            <Button
+              size="sm"
+              onClick={handleSetCustomDomain}
+              disabled={isSettingDomain || !customDomainInput.trim()}
+              className="text-xs font-semibold cursor-pointer shrink-0"
+            >
+              {isSettingDomain ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+                  Saving Domain...
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  Save Custom Domain
+                </>
+              )}
+            </Button>
+
+            {activeCustomDomain && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleVerifyCustomDomain}
+                disabled={isVerifyingDomain}
+                className="text-xs font-semibold cursor-pointer shrink-0"
+              >
+                {isVerifyingDomain ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5 text-emerald-600" />
+                    Checking DNS...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                    Verify DNS Records
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+
+          {/* Feedback Message Alert */}
+          {domainMessage && (
+            <div className="p-3.5 rounded-xl border border-border bg-muted/50 text-xs font-mono text-foreground flex items-center justify-between">
+              <span>{domainMessage}</span>
+            </div>
+          )}
+        </div>
+
+        {/* DNS Configuration Instructions */}
+        {activeCustomDomain && (
+          <div className="border-t border-border pt-6 space-y-4">
+            <h4 className="text-xs font-bold text-foreground uppercase tracking-wider font-mono">
+              DNS Configuration Instructions for {activeCustomDomain}
+            </h4>
+
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Add either a <strong>CNAME record</strong> or a <strong>TXT verification record</strong> with your domain registrar (Cloudflare, Namecheap, GoDaddy, Route53, etc.).
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* CNAME Record Box */}
+              <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-border pb-1.5">
+                  <span className="font-bold text-foreground font-mono">Option A: CNAME Record</span>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => {
+                      navigator.clipboard.writeText("cname.folioforge.com");
+                      setCopiedCnameValue(true);
+                      setTimeout(() => setCopiedCnameValue(false), 2000);
+                    }}
+                    className="text-[10px] font-mono cursor-pointer"
+                  >
+                    {copiedCnameValue ? (
+                      <Check className="w-3 h-3 text-emerald-600 mr-1" />
+                    ) : (
+                      <Copy className="w-3 h-3 mr-1" />
+                    )}
+                    Copy Value
+                  </Button>
+                </div>
+                <div className="font-mono text-[11px] space-y-1 text-muted-foreground">
+                  <div>Type: <strong className="text-foreground">CNAME</strong></div>
+                  <div>Name / Host: <strong className="text-foreground">@</strong> or <strong className="text-foreground">subdomain</strong></div>
+                  <div>Target / Points To: <strong className="text-foreground">cname.folioforge.com</strong></div>
+                </div>
+              </div>
+
+              {/* TXT Verification Box */}
+              <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
+                <div className="flex items-center justify-between border-b border-border pb-1.5">
+                  <span className="font-bold text-foreground font-mono">Option B: TXT Verification Token</span>
+                  {verificationToken && (
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={() => {
+                        navigator.clipboard.writeText(verificationToken);
+                        setCopiedTxtToken(true);
+                        setTimeout(() => setCopiedTxtToken(false), 2000);
+                      }}
+                      className="text-[10px] font-mono cursor-pointer"
+                    >
+                      {copiedTxtToken ? (
+                        <Check className="w-3 h-3 text-emerald-600 mr-1" />
+                      ) : (
+                        <Copy className="w-3 h-3 mr-1" />
+                      )}
+                      Copy Token
+                    </Button>
+                  )}
+                </div>
+                <div className="font-mono text-[11px] space-y-1 text-muted-foreground truncate">
+                  <div>Type: <strong className="text-foreground">TXT</strong></div>
+                  <div>Host: <strong className="text-foreground">_folioforge-challenge.{activeCustomDomain}</strong></div>
+                  <div className="truncate">Value: <strong className="text-foreground font-semibold truncate">{verificationToken || "Generating..."}</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* ── Bottom Sticky Publish & Save Action Bar ── */}
       <div className="bg-card border border-border p-4 sm:p-5 rounded-2xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 z-20">
         <div className="flex items-center space-x-3 text-xs">
@@ -545,14 +805,14 @@ ${portfolioData.bio}`}
           <div className="text-muted-foreground">
             <span className="font-semibold text-foreground capitalize">Theme: {selectedTemplate}</span>
             <span className="mx-2">&middot;</span>
-            <span>Subdomain: <code className="font-mono text-foreground font-semibold">{subdomain || "default"}</code></span>
+            <span>Domain: <code className="font-mono text-foreground font-semibold">{activeCustomDomain || subdomain || "default"}</code></span>
           </div>
         </div>
 
         <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
           <Button
             size="default"
-            onClick={handleSave}
+            onClick={handleSavePreferences}
             disabled={isUpdating}
             className="w-full sm:w-auto text-xs font-semibold cursor-pointer px-6 py-2.5"
           >

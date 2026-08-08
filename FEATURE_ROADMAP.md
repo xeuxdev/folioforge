@@ -77,11 +77,11 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] User can choose between Template 1 and Template 2 with live preview capabilities.
-* [ ] Portfolio renders Hero section, Work Experience timeline, Featured Projects, Skills grid, and Contact info directly from the canonical resume graph.
-* [ ] Updates made to the user's master CV graph instantly sync to their published portfolio site.
-* [ ] Portfolio page loads at `/u/username` with full responsive support across desktop, tablet, and mobile views.
-* [ ] All portfolio elements pass WCAG AA color contrast standards and keyboard focus accessibility directives.
+* [x] User can choose between Template 1 and Template 2 with live preview capabilities.
+* [x] Portfolio renders Hero section, Work Experience timeline, Featured Projects, Skills grid, and Contact info directly from the canonical resume graph.
+* [x] Updates made to the user's master CV graph instantly sync to their published portfolio site.
+* [x] Portfolio page loads at `/u/username` with full responsive support across desktop, tablet, and mobile views.
+* [x] All portfolio elements pass WCAG AA color contrast standards and keyboard focus accessibility directives.
 
 ---
 
@@ -94,9 +94,9 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] Visiting `/u/username/llm.txt` returns clean, unformatted `text/plain` markdown content.
-* [ ] Content accurately summarizes candidate work history, skills matrix, and verified portfolio links.
-* [ ] Endpoint responds with low latency and appropriate HTTP caching headers.
+* [x] Visiting `/u/username/llm.txt` returns clean, unformatted `text/plain` markdown content.
+* [x] Content accurately summarizes candidate work history, skills matrix, and verified portfolio links.
+* [x] Endpoint responds with low latency and appropriate HTTP caching headers.
 
 ---
 
@@ -110,9 +110,9 @@ This document outlines the sequential feature development roadmap for **FolioFor
 
 ### Completion Checklist
 
-* [ ] User can enter and save a custom domain name in their account settings.
-* [ ] System checks CNAME and A record alignment against domain DNS servers.
-* [ ] Incoming HTTP traffic on the custom domain serves the user's published portfolio seamlessly.
+* [x] User can enter and save a custom domain name in their account settings.
+* [x] System checks CNAME and A record alignment against domain DNS servers.
+* [x] Incoming HTTP traffic on the custom domain serves the user's published portfolio seamlessly.
 
 ---
 

@@ -77,6 +77,16 @@ export const portfolios = pgTable('portfolios', {
   selectedResumeId: uuid('selected_resume_id').references(() => resumes.id, {
     onDelete: 'set null',
   }),
+  /** Custom domain binding (e.g. alexsmith.com or cv.alexsmith.com) */
+  customDomain: text('custom_domain').unique(),
+  /** Status of domain verification: 'unverified' | 'pending' | 'verified' | 'failed' */
+  domainVerificationStatus: text('domain_verification_status')
+    .notNull()
+    .default('unverified'),
+  /** Unique verification token challenge for DNS TXT record */
+  domainVerificationToken: text('domain_verification_token'),
+  /** Timestamp when domain was successfully verified */
+  domainVerifiedAt: timestamp('domain_verified_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

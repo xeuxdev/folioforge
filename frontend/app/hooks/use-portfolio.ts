@@ -4,9 +4,11 @@ import type {
   PortfolioPreferences,
   PublicPortfolioPayload,
   UpdatePortfolioPreferencesPayload,
+  SetCustomDomainPayload,
+  CustomDomainVerificationResult,
 } from "~/types/portfolio";
 
-/** Fetch and mutate the authenticated user's portfolio preferences. */
+/** Fetch and mutate the authenticated user's portfolio preferences & custom domain. */
 export function usePortfolioPreferences() {
   const queryClient = useQueryClient();
 
@@ -32,6 +34,44 @@ export function usePortfolioPreferences() {
     },
   });
 
+  const setDomainMutation = useMutation<
+    PortfolioPreferences,
+    ApiError,
+    SetCustomDomainPayload
+  >({
+    mutationFn: (payload) =>
+      apiClient<PortfolioPreferences>("/api/v1/portfolio/domain", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["portfolio", "preferences"], updated);
+    },
+  });
+
+  const verifyDomainMutation = useMutation<
+    CustomDomainVerificationResult,
+    ApiError
+  >({
+    mutationFn: () =>
+      apiClient<CustomDomainVerificationResult>("/api/v1/portfolio/domain/verify", {
+        method: "POST",
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["portfolio", "preferences"] });
+    },
+  });
+
+  const removeDomainMutation = useMutation<PortfolioPreferences, ApiError>({
+    mutationFn: () =>
+      apiClient<PortfolioPreferences>("/api/v1/portfolio/domain", {
+        method: "DELETE",
+      }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["portfolio", "preferences"], updated);
+    },
+  });
+
   return {
     preferences: preferencesQuery.data ?? null,
     isLoading: preferencesQuery.isLoading,
@@ -40,6 +80,15 @@ export function usePortfolioPreferences() {
     updatePreferences: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     updateError: updateMutation.error,
+    setCustomDomain: setDomainMutation.mutateAsync,
+    isSettingDomain: setDomainMutation.isPending,
+    setDomainError: setDomainMutation.error,
+    verifyCustomDomain: verifyDomainMutation.mutateAsync,
+    isVerifyingDomain: verifyDomainMutation.isPending,
+    verifyDomainResult: verifyDomainMutation.data ?? null,
+    verifyDomainError: verifyDomainMutation.error,
+    removeCustomDomain: removeDomainMutation.mutateAsync,
+    isRemovingDomain: removeDomainMutation.isPending,
   };
 }
 
