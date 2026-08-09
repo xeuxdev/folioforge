@@ -3,10 +3,12 @@ import type { CanonicalResumeGraph } from '../../parser/parser.service';
 export type DomainVerificationStatus =
   'unverified' | 'pending' | 'verified' | 'failed';
 
+export type PortfolioTemplateType = 'minimal' | 'executive';
+
 export interface PortfolioPreferencesDto {
   id: string;
   userId: string;
-  selectedTemplate: 'minimal' | 'executive';
+  selectedTemplate: PortfolioTemplateType;
   subdomain: string | null;
   llmTxtEnabled: boolean;
   /** The resume ID pinned as the portfolio source. Null = auto-select latest. */
@@ -24,7 +26,7 @@ export interface PublicPortfolioDto {
   username: string;
   name: string;
   avatarUrl: string | null;
-  selectedTemplate: 'minimal' | 'executive';
+  selectedTemplate: PortfolioTemplateType;
   llmTxtEnabled: boolean;
   customDomain: string | null;
   /** The canonical resume graph from the pinned (or latest) resume.
@@ -33,7 +35,7 @@ export interface PublicPortfolioDto {
 }
 
 export interface UpdatePortfolioPreferencesDto {
-  selectedTemplate?: 'minimal' | 'executive';
+  selectedTemplate?: PortfolioTemplateType;
   subdomain?: string;
   llmTxtEnabled?: boolean;
   /** Pass a resume ID to pin it, or null to revert to auto (latest). */

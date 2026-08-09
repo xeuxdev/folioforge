@@ -63,12 +63,28 @@ export function canonicalToPortfolioData(
     };
   });
 
+  const milestones = [
+    ...(graph.honorsAndAwards ?? []).map((award) => ({
+      title: award.title,
+      dates: award.date || "",
+      location: award.issuer || "",
+      description: award.description || "",
+    })),
+    ...(graph.communityContributions ?? []).map((comm) => ({
+      title: `${comm.role} at ${comm.organization}`,
+      dates: [comm.startDate, comm.endDate].filter(Boolean).join(" - ") || "",
+      location: comm.location || "",
+      description: comm.description || (comm.bullets ?? []).join(" "),
+    })),
+  ];
+
   return {
     fullName: contact.fullName || "Candidate",
     roleTitle: experience[0]?.role || "",
     bio: graph.summary || "",
     email: contact.email || "",
     location: contact.location || "",
+    avatarUrl: contact.avatarUrl || overrides?.avatarUrl,
     githubUrl: contact.githubUrl || "",
     portfolioUrl: contact.websiteUrl || "",
     linkedinUrl: contact.linkedinUrl || "",
@@ -76,6 +92,7 @@ export function canonicalToPortfolioData(
     experience,
     projects,
     education,
+    milestones: milestones.length > 0 ? milestones : undefined,
     ...overrides,
   };
 }

@@ -1,16 +1,15 @@
-import {
-  Code2,
-  Globe,
-  Mail,
-  MapPin,
-  ExternalLink,
-  FileCode2,
-  Briefcase,
-  GraduationCap,
-  Wrench,
-  Sparkles,
-} from "lucide-react";
-import { buttonVariants } from "~/components/ui/button";
+import { ExternalLink, FileCode2, Globe, Mail, Phone } from "lucide-react";
+import { GithubIcon, LinkedinIcon, XIcon } from "./social-icons";
+import type { User } from "~/hooks/use-auth";
+
+export interface PortfolioMilestone {
+  title: string;
+  dates: string;
+  location?: string;
+  description: string;
+  image?: string;
+  links?: { title: string; href: string }[];
+}
 
 export interface PortfolioData {
   fullName: string;
@@ -18,9 +17,13 @@ export interface PortfolioData {
   bio: string;
   email: string;
   location: string;
+  avatarUrl?: string;
+  phone?: string;
   githubUrl: string;
   portfolioUrl: string;
   linkedinUrl: string;
+  xUrl?: string;
+  youtubeUrl?: string;
   skills: string[];
   experience: {
     company: string;
@@ -28,272 +31,221 @@ export interface PortfolioData {
     period: string;
     location: string;
     bullets: string[];
+    logoUrl?: string;
+    workMode?: string;
   }[];
   projects: {
     title: string;
     description: string;
     tech: string[];
     link?: string;
+    sourceUrl?: string;
+    image?: string;
+    video?: string;
+    dates?: string;
   }[];
   education: {
     degree: string;
     institution: string;
     year: string;
+    logoUrl?: string;
   }[];
+  milestones?: PortfolioMilestone[];
 }
 
-export const defaultPortfolioData: PortfolioData = {
-  fullName: "Alex Morgan",
-  roleTitle: "Senior Full-Stack Engineer",
-  bio: "Full-Stack Engineer specializing in high-throughput Node.js microservices, PostgreSQL query optimization, and type-safe React applications. Building self-hosted developer tools with zero vendor lock-in.",
-  email: "alex.morgan@xeux.labs",
-  location: "San Francisco, CA",
-  githubUrl: "https://github.com",
-  portfolioUrl: "https://alexmorgan.dev",
-  linkedinUrl: "https://linkedin.com",
-  skills: [
-    "TypeScript",
-    "React 19",
-    "React Router v8",
-    "Node.js",
-    "Express.js",
-    "PostgreSQL",
-    "Drizzle ORM",
-    "Redis",
-    "BullMQ",
-    "Tailwind CSS v4",
-    "Docker",
-    "Vector ATS PDF Streams",
-  ],
-  experience: [
-    {
-      company: "Xeux Labs",
-      role: "Senior Full-Stack Engineer",
-      period: "2023 - Present",
-      location: "San Francisco, CA",
-      bullets: [
-        "Architected Node.js microservices and real-time document queues handling 2M+ active sessions with PostgreSQL optimization.",
-        "Accelerated database query execution latency by 42% using PostgreSQL indexes and Drizzle ORM query tuning.",
-        "Engineered server-side PDF generation pipeline using react-pdf renderer, cutting memory overhead by 65%.",
-        "Led cross-functional engineering team of 5 developers building type-safe React Router v8 web applications.",
-      ],
-    },
-    {
-      company: "Vellum Technologies",
-      role: "Full-Stack Software Engineer",
-      period: "2021 - 2023",
-      location: "San Jose, CA",
-      bullets: [
-        "Engineered high-performance React application dashboards with strict TypeScript types and Tailwind CSS v4.",
-        "Integrated Redis BullMQ background queues for asynchronous document parsing tasks.",
-        "Implemented RESTful Express APIs serving 500k+ monthly requests with 99.99% system availability.",
-      ],
-    },
-  ],
-  projects: [
-    {
-      title: "FolioForge Engine",
-      description:
-        "Self-hosted, type-safe CV builder and portfolio website generator powered by React Router v8, PostgreSQL, and BullMQ.",
-      tech: ["TypeScript", "React 19", "PostgreSQL", "BullMQ"],
-      link: "https://github.com",
-    },
-    {
-      title: "Vector ATS Document Stream",
-      description:
-        "High-speed server-side PDF compiler producing single-column ATS parseable documents with zero raster fonts.",
-      tech: ["Node.js", "Express", "Drizzle ORM"],
-      link: "https://github.com",
-    },
-  ],
-  education: [
-    {
-      degree: "B.S. Computer Science",
-      institution: "University of California, Berkeley",
-      year: "2017 - 2021",
-    },
-  ],
-};
-
 export function MinimalTemplate({
-  data = defaultPortfolioData,
-  username = "alex",
+  data,
+  user,
 }: {
   data?: PortfolioData;
-  username?: string;
+  user?: User;
 }) {
-  const hasExperience = data.experience && data.experience.length > 0;
-  const hasProjects = data.projects && data.projects.length > 0;
-  const hasSkills = data.skills && data.skills.length > 0;
-  const hasEducation = data.education && data.education.length > 0;
+  const hasExperience = data?.experience && data?.experience.length > 0;
+  const hasProjects = data?.projects && data?.projects.length > 0;
+  const hasSkills = data?.skills && data?.skills.length > 0;
+  const hasEducation = data?.education && data?.education.length > 0;
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-muted font-sans w-full max-w-full overflow-x-hidden">
-      {/* Header / Navbar */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto h-16 flex items-center justify-between gap-3 w-full">
-          <a
-            href={`/u/${username}`}
-            className="font-heading font-bold text-base sm:text-lg text-foreground tracking-tight flex items-center space-x-2 truncate min-w-0"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span className="truncate">{data.fullName || "Candidate"}</span>
-          </a>
+    <div className="min-h-screen bg-background text-foreground font-sans w-full max-w-full overflow-x-hidden py-10 sm:py-16 px-4 sm:px-6 flex justify-center items-start selection:bg-muted">
+      {/* Flat Content Container */}
+      <main className="w-full max-w-2xl space-y-10 text-foreground">
+        {/* ── 01. Hero Header ── */}
+        <section id="hero" className="space-y-4">
+          <div className="flex flex-col-reverse sm:flex-row items-start justify-between gap-6">
+            <div className="space-y-2 flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-sans">
+                {data?.fullName}
+              </h1>
 
-          <div className="flex items-center space-x-2 shrink-0">
-            <a
-              href={`/u/${username}/llm.txt`}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({
-                variant: "outline",
-                size: "xs",
-                className:
-                  "font-mono text-xs text-muted-foreground hover:text-foreground",
-              })}
-            >
-              <FileCode2 className="mr-1 w-3 h-3 text-emerald-600 shrink-0" />
-              <span className="hidden sm:inline">/llm.txt</span>
-              <span className="sm:hidden">llm</span>
-            </a>
-            {data.email && (
-              <a
-                href={`mailto:${data.email}`}
-                className={buttonVariants({
-                  size: "xs",
-                  className: "font-semibold text-xs",
-                })}
-              >
-                <Mail className="mr-1 w-3 h-3 sm:mr-1.5 sm:w-3.5 sm:h-3.5 shrink-0" />
-                <span>Contact</span>
-              </a>
-            )}
-          </div>
-        </div>
-      </header>
+              {data?.roleTitle && (
+                <p className="text-xs sm:text-sm font-mono text-muted-foreground leading-relaxed font-normal">
+                  {data?.roleTitle}
+                </p>
+              )}
 
-      {/* Main Container */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12 sm:space-y-16 w-full">
-        {/* Hero Section */}
-        <section className="space-y-4 sm:space-y-6 w-full">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-mono font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-              <span>Available for Technical Roles</span>
-            </span>
-            {data.location && (
-              <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-muted border border-border text-xs font-mono font-medium text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5 text-foreground mr-1 shrink-0" />
-                <span>{data.location}</span>
-              </span>
-            )}
-          </div>
+              {data?.location && (
+                <p className="text-xs font-mono text-muted-foreground/70">
+                  {data?.location}
+                </p>
+              )}
 
-          <div className="space-y-2 sm:space-y-3 w-full">
-            <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight leading-tight w-full break-normal">
-              {data.fullName}
-            </h1>
-            {data.roleTitle && (
-              <p className="text-lg sm:text-2xl font-semibold text-muted-foreground leading-snug w-full">
-                {data.roleTitle}
-              </p>
-            )}
-          </div>
+              {/* Social & Contact Icon Action Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-2">
+                {data?.email && (
+                  <a
+                    href={`mailto:${data?.email}`}
+                    aria-label="Send email"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                  </a>
+                )}
 
-          {data.bio && (
-            <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed max-w-3xl w-full">
-              {data.bio}
-            </p>
-          )}
+                {data?.phone && (
+                  <a
+                    href={`tel:${data?.phone}`}
+                    aria-label="Call phone"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Phone className="w-3.5 h-3.5" />
+                  </a>
+                )}
 
-          {/* Social & Contact Links */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2 w-full">
-            {data.githubUrl && (
-              <a
-                href={data.githubUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className: "text-xs font-semibold",
-                })}
-              >
-                <Code2 className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-                <span>GitHub</span>
-              </a>
-            )}
-            {data.portfolioUrl && (
-              <a
-                href={data.portfolioUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className: "text-xs font-semibold",
-                })}
-              >
-                <Globe className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-                <span>Website</span>
-              </a>
-            )}
-            {data.email && (
-              <a
-                href={`mailto:${data.email}`}
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className: "text-xs font-semibold truncate max-w-full",
-                })}
-              >
-                <Mail className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{data.email}</span>
-              </a>
-            )}
+                {data?.githubUrl && (
+                  <a
+                    href={data?.githubUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="GitHub profile"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <GithubIcon className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {data?.linkedinUrl && (
+                  <a
+                    href={data?.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="LinkedIn profile"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <LinkedinIcon className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {data?.xUrl && (
+                  <a
+                    href={data?.xUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="X Twitter profile"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <XIcon className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {data?.portfolioUrl && (
+                  <a
+                    href={data?.portfolioUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Website"
+                    className="w-8 h-8 rounded-lg border border-border bg-card hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                  </a>
+                )}
+
+                {/* Machine-readable llm.txt button */}
+                <a
+                  href={`/u/${user?.username}/llm.txt`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Machine-readable profile llm.txt"
+                  className="h-8 px-2.5 rounded-lg border border-border bg-card hover:bg-muted flex items-center gap-1 text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <FileCode2 className="w-3 h-3 text-emerald-600" />
+                  <span>llm.txt</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Avatar Profile Picture */}
+            <div className="shrink-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl border border-border overflow-hidden bg-muted flex items-center justify-center font-bold text-xl text-foreground shadow-xs">
+                {user?.avatarUrl ? (
+                  <img
+                    src={user?.avatarUrl}
+                    alt={data?.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="font-mono">
+                    {data?.fullName
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Work Experience Timeline */}
-        {hasExperience && (
-          <section className="space-y-6 w-full">
-            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-              <Briefcase className="w-5 h-5 text-foreground shrink-0" />
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                Work Experience
-              </h2>
-            </div>
+        {/* ── 02. About Section ── */}
+        {data?.bio && (
+          <section id="about" className="space-y-2">
+            <h2 className="text-base sm:text-lg font-bold font-sans tracking-tight text-foreground">
+              About
+            </h2>
+            <p className="text-xs sm:text-sm font-mono text-muted-foreground leading-relaxed">
+              {data?.bio}
+            </p>
+          </section>
+        )}
 
-            <div className="flex flex-col gap-6 sm:gap-8 w-full">
-              {data.experience.map((exp, idx) => (
-                <div
-                  key={idx}
-                  className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs w-full"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4 w-full">
-                    <div>
-                      <h3 className="text-base sm:text-xl font-bold text-foreground">
-                        {exp.company}
-                      </h3>
-                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground">
+        {/* ── 03. Work Experience Section ── */}
+        {hasExperience && (
+          <section id="work" className="space-y-5">
+            <h2 className="text-base sm:text-lg font-bold font-sans tracking-tight text-foreground">
+              Work Experience
+            </h2>
+
+            <div className="space-y-6">
+              {data?.experience.map((exp, idx) => (
+                <div key={`${exp.company}-${idx}`} className="space-y-1.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-bold text-sm sm:text-base font-sans text-foreground">
                         {exp.role}
-                      </p>
+                      </h3>
+                      {(exp.workMode || exp.location) && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border/60 font-normal">
+                          {exp.workMode || exp.location}
+                        </span>
+                      )}
                     </div>
-                    {exp.period && (
-                      <span className="text-xs font-mono font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0 self-start sm:self-auto">
-                        {exp.period}
-                      </span>
-                    )}
+
+                    <span className="text-xs font-mono text-muted-foreground shrink-0 pt-0.5">
+                      {exp.period}
+                    </span>
                   </div>
 
+                  <p className="text-xs font-mono text-muted-foreground">
+                    {exp.company}
+                  </p>
+
                   {exp.bullets && exp.bullets.length > 0 && (
-                    <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-muted-foreground space-y-2 leading-relaxed pt-1 w-full">
+                    <div className="text-xs font-mono text-muted-foreground/90 leading-relaxed space-y-1 mt-2 pl-3 border-l border-border/60">
                       {exp.bullets.map((bullet, bIdx) => (
-                        <li key={bIdx} className="wrap-break-word">
-                          {bullet}
-                        </li>
+                        <p key={bIdx}>{bullet}</p>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </div>
               ))}
@@ -301,51 +253,99 @@ export function MinimalTemplate({
           </section>
         )}
 
-        {/* Featured Projects */}
-        {hasProjects && (
-          <section className="space-y-6 w-full">
-            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-              <Sparkles className="w-5 h-5 text-foreground shrink-0" />
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                Featured Projects & Systems
-              </h2>
-            </div>
+        {/* ── 04. Education Section ── */}
+        {hasEducation && (
+          <section id="education" className="space-y-4">
+            <h2 className="text-base sm:text-lg font-bold font-sans tracking-tight text-foreground">
+              Education
+            </h2>
 
-            <div className="flex flex-col gap-6 w-full">
-              {data.projects.map((proj, idx) => (
-                <div
-                  key={idx}
-                  className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs flex flex-col justify-between transition-all hover:border-foreground/30 w-full"
+            <div className="space-y-4">
+              {data?.education.map((edu, idx) => (
+                <div key={`${edu.institution}-${idx}`} className="space-y-0.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-bold text-sm sm:text-base font-sans text-foreground">
+                      {edu.institution}
+                    </h3>
+                    <span className="text-xs font-mono text-muted-foreground shrink-0">
+                      {edu.year}
+                    </span>
+                  </div>
+                  <p className="text-xs font-mono text-muted-foreground">
+                    {edu.degree}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 05. Skills Section ── */}
+        {hasSkills && (
+          <section id="skills" className="space-y-3">
+            <h2 className="text-base sm:text-lg font-bold font-sans tracking-tight text-foreground">
+              Skills
+            </h2>
+
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              {data?.skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-2.5 py-1 rounded-md text-xs font-mono bg-muted text-foreground border border-border/60"
                 >
-                  <div className="space-y-2 w-full">
-                    <div className="flex items-center justify-between gap-3 w-full">
-                      <h3 className="text-base sm:text-xl font-bold text-foreground">
-                        {proj.title}
-                      </h3>
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── 06. Projects Section ── */}
+        {hasProjects && (
+          <section id="projects" className="space-y-4 pt-2">
+            <h2 className="text-base sm:text-lg font-bold font-sans tracking-tight text-foreground">
+              Projects
+            </h2>
+
+            <div className="grid grid-cols-1 gap-4">
+              {data?.projects.map((proj, idx) => (
+                <div
+                  key={`${proj.title}-${idx}`}
+                  className="p-4 sm:p-5 rounded-xl border border-border bg-card/40 hover:border-foreground/30 transition-all space-y-2.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-bold text-sm sm:text-base font-sans text-foreground flex items-center gap-2">
+                      {proj.title}
                       {proj.link && (
                         <a
                           href={proj.link}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-muted-foreground hover:text-foreground p-1 shrink-0"
+                          aria-label={`Open ${proj.title}`}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
                         >
-                          <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       )}
-                    </div>
-                    {proj.description && (
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed w-full">
-                        {proj.description}
-                      </p>
+                    </h3>
+
+                    {proj.dates && (
+                      <span className="text-xs font-mono text-muted-foreground">
+                        {proj.dates}
+                      </span>
                     )}
                   </div>
 
+                  <p className="text-xs font-mono text-muted-foreground leading-relaxed">
+                    {proj.description}
+                  </p>
+
                   {proj.tech && proj.tech.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-border/60 w-full">
+                    <div className="flex flex-wrap gap-1 pt-1">
                       {proj.tech.map((t) => (
                         <span
                           key={t}
-                          className="px-2.5 py-1 rounded-md text-xs font-mono bg-muted text-muted-foreground border border-border"
+                          className="px-2 py-0.5 rounded text-[10px] font-mono bg-muted text-muted-foreground border border-border/40"
                         >
                           {t}
                         </span>
@@ -357,83 +357,7 @@ export function MinimalTemplate({
             </div>
           </section>
         )}
-
-        {/* Technical Skills */}
-        {hasSkills && (
-          <section className="space-y-6 w-full">
-            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-              <Wrench className="w-5 h-5 text-foreground shrink-0" />
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                Technical Stack & Skill Taxonomy
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap gap-2 sm:gap-2.5 w-full">
-              {data.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-card border border-border text-xs font-mono font-medium text-foreground shadow-xs transition-all hover:bg-muted"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Education */}
-        {hasEducation && (
-          <section className="space-y-6 w-full">
-            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-              <GraduationCap className="w-5 h-5 text-foreground shrink-0" />
-              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                Education & Certification
-              </h2>
-            </div>
-
-            <div className="flex flex-col gap-3 w-full">
-              {data.education.map((edu, idx) => (
-                <div
-                  key={idx}
-                  className="bg-card border border-border p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm shadow-xs w-full"
-                >
-                  <div>
-                    <h3 className="font-bold text-foreground text-sm sm:text-base">
-                      {edu.degree}
-                    </h3>
-                    {edu.institution && (
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {edu.institution}
-                      </p>
-                    )}
-                  </div>
-                  {edu.year && (
-                    <span className="text-xs font-mono text-muted-foreground bg-muted px-2.5 py-1 rounded border border-border self-start sm:self-auto">
-                      {edu.year}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-border py-8 sm:py-12 text-center text-xs text-muted-foreground space-y-3 px-4 w-full">
-        <p>
-          &copy; {new Date().getFullYear()} {data.fullName}. Published with
-          FolioForge Engine.
-        </p>
-        <p className="font-mono text-[11px]">
-          <a
-            href={`/u/${username}/llm.txt`}
-            className="hover:underline text-foreground"
-          >
-            View /llm.txt machine summary
-          </a>
-        </p>
-      </footer>
     </div>
   );
 }

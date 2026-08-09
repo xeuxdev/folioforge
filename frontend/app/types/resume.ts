@@ -6,6 +6,7 @@ export interface ContactInfo {
   linkedinUrl?: string;
   githubUrl?: string;
   websiteUrl?: string;
+  avatarUrl?: string;
 }
 
 export interface WorkExperience {

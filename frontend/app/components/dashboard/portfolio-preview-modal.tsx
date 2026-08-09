@@ -1,21 +1,26 @@
-import { useState } from "react";
 import {
-  X,
   Check,
-  Monitor,
-  Tablet,
-  Smartphone,
   ExternalLink,
+  Monitor,
+  Smartphone,
+  Tablet,
+  X,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { MinimalTemplate, type PortfolioData, defaultPortfolioData } from "../portfolio/minimal-template";
+import type { PortfolioTemplateType } from "~/types/portfolio";
 import { ExecutiveTemplate } from "../portfolio/executive-template";
+import {
+  MinimalTemplate,
+  type PortfolioData,
+} from "../portfolio/minimal-template";
+import { useAuth } from "~/hooks/use-auth";
 
 interface PortfolioPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  template: "minimal" | "executive";
-  onSelectTemplate: (template: "minimal" | "executive") => void;
+  template: PortfolioTemplateType;
+  onSelectTemplate: (template: PortfolioTemplateType) => void;
   data?: PortfolioData;
 }
 
@@ -24,8 +29,9 @@ export function PortfolioPreviewModal({
   onClose,
   template,
   onSelectTemplate,
-  data = defaultPortfolioData,
+  data,
 }: PortfolioPreviewModalProps) {
+  const { user } = useAuth();
   const [deviceView, setDeviceView] = useState<"desktop" | "tablet" | "mobile">(
     "desktop",
   );
@@ -37,6 +43,24 @@ export function PortfolioPreviewModal({
     onClose();
   };
 
+  const getTemplateTitle = () => {
+    switch (template) {
+      case "executive":
+        return "Executive Editorial Theme";
+      default:
+        return "Clean Minimalist Theme";
+    }
+  };
+
+  const getTemplateBadge = () => {
+    switch (template) {
+      case "executive":
+        return "Theme 02";
+      default:
+        return "Theme 01";
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
       <div className="bg-card border border-border rounded-2xl max-w-6xl w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden">
@@ -44,13 +68,11 @@ export function PortfolioPreviewModal({
         <div className="p-4 sm:px-6 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/40 shrink-0">
           <div className="flex items-center space-x-3">
             <span className="text-xs font-mono font-semibold uppercase px-2.5 py-1 rounded bg-muted text-foreground border border-border">
-              {template === "minimal" ? "Template 01" : "Template 02"}
+              {getTemplateBadge()}
             </span>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-foreground">
-                {template === "minimal"
-                  ? "Clean Minimalist Theme"
-                  : "Executive Editorial Theme"}
+                {getTemplateTitle()}
               </h2>
               <p className="text-xs text-muted-foreground">
                 Interactive preview rendering live candidate data graph.
@@ -107,20 +129,20 @@ export function PortfolioPreviewModal({
         </div>
 
         {/* Scrollable Device Canvas Container */}
-        <div className="flex-1 bg-muted/70 p-2 sm:p-6 overflow-y-auto flex justify-center items-start">
+        <div className="flex-1 bg-background overflow-y-auto flex justify-center items-start">
           <div
-            className={`bg-background border border-border shadow-xl rounded-2xl overflow-x-hidden transition-all duration-300 ${
+            className={`bg-background overflow-x-hidden transition-all duration-300 w-full ${
               deviceView === "mobile"
-                ? "w-93.75 max-w-full min-h-175"
+                ? "max-w-md my-4 border border-border rounded-2xl shadow-lg"
                 : deviceView === "tablet"
-                  ? "w-3xl max-w-full min-h-200"
-                  : "w-full max-w-5xl min-h-212.5"
+                  ? "max-w-3xl my-4 border border-border rounded-2xl shadow-lg"
+                  : "w-full"
             }`}
           >
-            {template === "minimal" ? (
-              <MinimalTemplate data={data} username="preview" />
+            {template === "executive" ? (
+              <ExecutiveTemplate data={data} user={user!} />
             ) : (
-              <ExecutiveTemplate data={data} username="preview" />
+              <MinimalTemplate data={data} user={user!} />
             )}
           </div>
         </div>

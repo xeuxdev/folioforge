@@ -28,6 +28,8 @@ import { useAuth } from "~/hooks/use-auth";
 import { useResumes } from "~/hooks/use-resumes";
 import { canonicalToPortfolioData } from "~/lib/portfolio-adapter";
 
+import type { PortfolioTemplateType } from "~/types/portfolio";
+
 export function PortfolioSettings() {
   const {
     preferences,
@@ -45,9 +47,8 @@ export function PortfolioSettings() {
   const { user } = useAuth();
   const { resumes } = useResumes();
 
-  const [selectedTemplate, setSelectedTemplate] = useState<
-    "minimal" | "executive"
-  >("minimal");
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<PortfolioTemplateType>("minimal");
   const [subdomain, setSubdomain] = useState<string>("");
   const [customDomainInput, setCustomDomainInput] = useState<string>("");
   const [llmTxtEnabled, setLlmTxtEnabled] = useState<boolean>(true);
@@ -59,9 +60,8 @@ export function PortfolioSettings() {
   const [domainMessage, setDomainMessage] = useState<string | null>(null);
 
   // Modal preview state
-  const [previewTemplate, setPreviewTemplate] = useState<
-    "minimal" | "executive" | null
-  >(null);
+  const [previewTemplate, setPreviewTemplate] =
+    useState<PortfolioTemplateType | null>(null);
 
   // Sync local state once preferences load from the API
   useEffect(() => {
@@ -168,8 +168,7 @@ export function PortfolioSettings() {
       const res = await verifyCustomDomain();
       setDomainMessage(res.message);
     } catch (err: unknown) {
-      const errStr =
-        err instanceof Error ? err.message : "Verification failed";
+      const errStr = err instanceof Error ? err.message : "Verification failed";
       setDomainMessage(`Verification error: ${errStr}`);
     }
   };

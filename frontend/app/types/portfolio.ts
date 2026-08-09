@@ -6,10 +6,12 @@ export type DomainVerificationStatus =
   | "verified"
   | "failed";
 
+export type PortfolioTemplateType = "minimal" | "executive";
+
 export interface PortfolioPreferences {
   id: string;
   userId: string;
-  selectedTemplate: "minimal" | "executive";
+  selectedTemplate: PortfolioTemplateType;
   subdomain: string | null;
   llmTxtEnabled: boolean;
   selectedResumeId: string | null;
@@ -25,14 +27,14 @@ export interface PublicPortfolioPayload {
   username: string;
   name: string;
   avatarUrl: string | null;
-  selectedTemplate: "minimal" | "executive";
+  selectedTemplate: PortfolioTemplateType;
   llmTxtEnabled: boolean;
   customDomain: string | null;
   resumeGraph: CanonicalResumeGraph | null;
 }
 
 export interface UpdatePortfolioPreferencesPayload {
-  selectedTemplate?: "minimal" | "executive";
+  selectedTemplate?: PortfolioTemplateType;
   subdomain?: string;
   llmTxtEnabled?: boolean;
   selectedResumeId?: string | null;
