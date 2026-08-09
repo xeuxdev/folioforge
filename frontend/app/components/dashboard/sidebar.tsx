@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import {
   FileText,
   Upload,
@@ -17,24 +18,24 @@ interface SidebarProps {
 export function Sidebar({ currentPath }: SidebarProps) {
   const navItems = [
     {
-      label: "Master Resume Graph",
+      label: "Master Resume",
       href: "/dashboard",
       icon: FileText,
       badge: "Source of Truth",
     },
     {
-      label: "Upload & Parse CV",
+      label: "Import Resume",
       href: "/dashboard/import",
       icon: Upload,
     },
     {
-      label: "AI Tailoring Engine",
+      label: "AI Resume Tailor",
       href: "/dashboard/tailor",
       icon: Sparkles,
       badge: "Diff Engine",
     },
     {
-      label: "Portfolio Site",
+      label: "Portfolio Builder",
       href: "/dashboard/portfolio",
       icon: Globe,
     },
@@ -45,7 +46,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
       badge: "Pro",
     },
     {
-      label: "Account & Data",
+      label: "Account Settings",
       href: "/dashboard/settings",
       icon: Settings,
     },
@@ -56,9 +57,9 @@ export function Sidebar({ currentPath }: SidebarProps) {
       <div className="space-y-6">
         {/* Logo */}
         <div className="px-2 pt-2 flex items-center justify-between">
-          <a href="/dashboard" className="flex items-center group cursor-pointer">
+          <Link to="/dashboard" className="flex items-center group cursor-pointer">
             <Logo className="w-7 h-7" showText={true} />
-          </a>
+          </Link>
         </div>
 
         {/* Navigation Items */}
@@ -67,9 +68,9 @@ export function Sidebar({ currentPath }: SidebarProps) {
             const Icon = item.icon;
             const isActive = currentPath === item.href;
             return (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
+                to={item.href}
                 className={buttonVariants({
                   variant: isActive ? "secondary" : "ghost",
                   className: `w-full justify-start space-x-3 px-3 py-2.5 text-sm font-medium ${
@@ -86,7 +87,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
                     {item.badge}
                   </span>
                 )}
-              </a>
+              </Link>
             );
           })}
         </nav>
@@ -108,8 +109,8 @@ export function Sidebar({ currentPath }: SidebarProps) {
           </div>
         </div>
 
-        <a
-          href="/login"
+        <Link
+          to="/login"
           className={buttonVariants({
             variant: "outline",
             size: "sm",
@@ -118,8 +119,9 @@ export function Sidebar({ currentPath }: SidebarProps) {
         >
           <LogOut className="mr-1.5 w-3.5 h-3.5" />
           Sign Out
-        </a>
+        </Link>
       </div>
     </aside>
   );
 }
+

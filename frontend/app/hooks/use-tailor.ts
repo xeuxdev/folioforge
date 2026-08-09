@@ -41,6 +41,7 @@ export function useTailor() {
       }),
     onSuccess: (newRecord) => {
       queryClient.invalidateQueries({ queryKey: ["tailor", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
       queryClient.setQueryData(["tailor", newRecord.id], newRecord);
     },
   });
@@ -56,6 +57,7 @@ export function useTailor() {
       }),
     onSuccess: (updatedRecord) => {
       queryClient.invalidateQueries({ queryKey: ["tailor", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
       queryClient.setQueryData(["tailor", updatedRecord.id], updatedRecord);
     },
   });
@@ -79,6 +81,7 @@ export function useTailor() {
       }),
     onSuccess: (updatedRecord) => {
       queryClient.invalidateQueries({ queryKey: ["tailor", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
       queryClient.setQueryData(["tailor", updatedRecord.id], updatedRecord);
     },
   });
@@ -90,6 +93,7 @@ export function useTailor() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tailor", "history"] });
+      queryClient.invalidateQueries({ queryKey: ["resumes"] });
     },
   });
 

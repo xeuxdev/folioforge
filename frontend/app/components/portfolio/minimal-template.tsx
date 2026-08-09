@@ -122,6 +122,11 @@ export function MinimalTemplate({
   data?: PortfolioData;
   username?: string;
 }) {
+  const hasExperience = data.experience && data.experience.length > 0;
+  const hasProjects = data.projects && data.projects.length > 0;
+  const hasSkills = data.skills && data.skills.length > 0;
+  const hasEducation = data.education && data.education.length > 0;
+
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-muted font-sans w-full max-w-full overflow-x-hidden">
       {/* Header / Navbar */}
@@ -132,7 +137,7 @@ export function MinimalTemplate({
             className="font-heading font-bold text-base sm:text-lg text-foreground tracking-tight flex items-center space-x-2 truncate min-w-0"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-            <span className="truncate">{data.fullName}</span>
+            <span className="truncate">{data.fullName || "Candidate"}</span>
           </a>
 
           <div className="flex items-center space-x-2 shrink-0">
@@ -151,16 +156,18 @@ export function MinimalTemplate({
               <span className="hidden sm:inline">/llm.txt</span>
               <span className="sm:hidden">llm</span>
             </a>
-            <a
-              href={`mailto:${data.email}`}
-              className={buttonVariants({
-                size: "xs",
-                className: "font-semibold text-xs",
-              })}
-            >
-              <Mail className="mr-1 w-3 h-3 sm:mr-1.5 sm:w-3.5 sm:h-3.5 shrink-0" />
-              <span>Contact</span>
-            </a>
+            {data.email && (
+              <a
+                href={`mailto:${data.email}`}
+                className={buttonVariants({
+                  size: "xs",
+                  className: "font-semibold text-xs",
+                })}
+              >
+                <Mail className="mr-1 w-3 h-3 sm:mr-1.5 sm:w-3.5 sm:h-3.5 shrink-0" />
+                <span>Contact</span>
+              </a>
+            )}
           </div>
         </div>
       </header>
@@ -174,210 +181,242 @@ export function MinimalTemplate({
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
               <span>Available for Technical Roles</span>
             </span>
-            <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-muted border border-border text-xs font-mono font-medium text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5 text-foreground mr-1 shrink-0" />
-              <span>{data.location}</span>
-            </span>
+            {data.location && (
+              <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full bg-muted border border-border text-xs font-mono font-medium text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5 text-foreground mr-1 shrink-0" />
+                <span>{data.location}</span>
+              </span>
+            )}
           </div>
 
           <div className="space-y-2 sm:space-y-3 w-full">
             <h1 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight leading-tight w-full break-normal">
               {data.fullName}
             </h1>
-            <p className="text-lg sm:text-2xl font-semibold text-muted-foreground leading-snug w-full">
-              {data.roleTitle}
-            </p>
+            {data.roleTitle && (
+              <p className="text-lg sm:text-2xl font-semibold text-muted-foreground leading-snug w-full">
+                {data.roleTitle}
+              </p>
+            )}
           </div>
 
-          <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed max-w-3xl w-full">
-            {data.bio}
-          </p>
+          {data.bio && (
+            <p className="text-sm sm:text-lg text-muted-foreground leading-relaxed max-w-3xl w-full">
+              {data.bio}
+            </p>
+          )}
 
           {/* Social & Contact Links */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2 w-full">
-            <a
-              href={data.githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "text-xs font-semibold",
-              })}
-            >
-              <Code2 className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-              <span>GitHub</span>
-            </a>
-            <a
-              href={data.portfolioUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "text-xs font-semibold",
-              })}
-            >
-              <Globe className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-              <span>Website</span>
-            </a>
-            <a
-              href={`mailto:${data.email}`}
-              className={buttonVariants({
-                variant: "outline",
-                size: "sm",
-                className: "text-xs font-semibold truncate max-w-full",
-              })}
-            >
-              <Mail className="mr-1.5 w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{data.email}</span>
-            </a>
+            {data.githubUrl && (
+              <a
+                href={data.githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className: "text-xs font-semibold",
+                })}
+              >
+                <Code2 className="mr-1.5 w-3.5 h-3.5 shrink-0" />
+                <span>GitHub</span>
+              </a>
+            )}
+            {data.portfolioUrl && (
+              <a
+                href={data.portfolioUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className: "text-xs font-semibold",
+                })}
+              >
+                <Globe className="mr-1.5 w-3.5 h-3.5 shrink-0" />
+                <span>Website</span>
+              </a>
+            )}
+            {data.email && (
+              <a
+                href={`mailto:${data.email}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className: "text-xs font-semibold truncate max-w-full",
+                })}
+              >
+                <Mail className="mr-1.5 w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{data.email}</span>
+              </a>
+            )}
           </div>
         </section>
 
         {/* Work Experience Timeline */}
-        <section className="space-y-6 w-full">
-          <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-            <Briefcase className="w-5 h-5 text-foreground shrink-0" />
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              Work Experience
-            </h2>
-          </div>
+        {hasExperience && (
+          <section className="space-y-6 w-full">
+            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
+              <Briefcase className="w-5 h-5 text-foreground shrink-0" />
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                Work Experience
+              </h2>
+            </div>
 
-          <div className="flex flex-col gap-6 sm:gap-8 w-full">
-            {data.experience.map((exp, idx) => (
-              <div
-                key={idx}
-                className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs w-full"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4 w-full">
-                  <div>
-                    <h3 className="text-base sm:text-xl font-bold text-foreground">
-                      {exp.company}
-                    </h3>
-                    <p className="text-xs sm:text-sm font-semibold text-muted-foreground">
-                      {exp.role}
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0 self-start sm:self-auto">
-                    {exp.period}
-                  </span>
-                </div>
-
-                <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-muted-foreground space-y-2 leading-relaxed pt-1 w-full">
-                  {exp.bullets.map((bullet, bIdx) => (
-                    <li key={bIdx} className="wrap-break-word">
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Featured Projects - Stacked Vertically */}
-        <section className="space-y-6 w-full">
-          <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-            <Sparkles className="w-5 h-5 text-foreground shrink-0" />
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              Featured Projects & Systems
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-6 w-full">
-            {data.projects.map((proj, idx) => (
-              <div
-                key={idx}
-                className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs flex flex-col justify-between transition-all hover:border-foreground/30 w-full"
-              >
-                <div className="space-y-2 w-full">
-                  <div className="flex items-center justify-between gap-3 w-full">
-                    <h3 className="text-base sm:text-xl font-bold text-foreground">
-                      {proj.title}
-                    </h3>
-                    {proj.link && (
-                      <a
-                        href={proj.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-muted-foreground hover:text-foreground p-1 shrink-0"
-                      >
-                        <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </a>
+            <div className="flex flex-col gap-6 sm:gap-8 w-full">
+              {data.experience.map((exp, idx) => (
+                <div
+                  key={idx}
+                  className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs w-full"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4 w-full">
+                    <div>
+                      <h3 className="text-base sm:text-xl font-bold text-foreground">
+                        {exp.company}
+                      </h3>
+                      <p className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                        {exp.role}
+                      </p>
+                    </div>
+                    {exp.period && (
+                      <span className="text-xs font-mono font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full border border-border shrink-0 self-start sm:self-auto">
+                        {exp.period}
+                      </span>
                     )}
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed w-full">
-                    {proj.description}
-                  </p>
-                </div>
 
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-border/60 w-full">
-                  {proj.tech.map((t) => (
-                    <span
-                      key={t}
-                      className="px-2.5 py-1 rounded-md text-xs font-mono bg-muted text-muted-foreground border border-border"
-                    >
-                      {t}
-                    </span>
-                  ))}
+                  {exp.bullets && exp.bullets.length > 0 && (
+                    <ul className="list-disc pl-4 sm:pl-5 text-xs sm:text-sm text-muted-foreground space-y-2 leading-relaxed pt-1 w-full">
+                      {exp.bullets.map((bullet, bIdx) => (
+                        <li key={bIdx} className="wrap-break-word">
+                          {bullet}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Featured Projects */}
+        {hasProjects && (
+          <section className="space-y-6 w-full">
+            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
+              <Sparkles className="w-5 h-5 text-foreground shrink-0" />
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                Featured Projects & Systems
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-6 w-full">
+              {data.projects.map((proj, idx) => (
+                <div
+                  key={idx}
+                  className="bg-card border border-border p-5 sm:p-8 rounded-2xl space-y-4 shadow-xs flex flex-col justify-between transition-all hover:border-foreground/30 w-full"
+                >
+                  <div className="space-y-2 w-full">
+                    <div className="flex items-center justify-between gap-3 w-full">
+                      <h3 className="text-base sm:text-xl font-bold text-foreground">
+                        {proj.title}
+                      </h3>
+                      {proj.link && (
+                        <a
+                          href={proj.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-muted-foreground hover:text-foreground p-1 shrink-0"
+                        >
+                          <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </a>
+                      )}
+                    </div>
+                    {proj.description && (
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed w-full">
+                        {proj.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {proj.tech && proj.tech.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-border/60 w-full">
+                      {proj.tech.map((t) => (
+                        <span
+                          key={t}
+                          className="px-2.5 py-1 rounded-md text-xs font-mono bg-muted text-muted-foreground border border-border"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Technical Skills */}
-        <section className="space-y-6 w-full">
-          <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-            <Wrench className="w-5 h-5 text-foreground shrink-0" />
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              Technical Stack & Skill Taxonomy
-            </h2>
-          </div>
+        {hasSkills && (
+          <section className="space-y-6 w-full">
+            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
+              <Wrench className="w-5 h-5 text-foreground shrink-0" />
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                Technical Stack & Skill Taxonomy
+              </h2>
+            </div>
 
-          <div className="flex flex-wrap gap-2 sm:gap-2.5 w-full">
-            {data.skills.map((skill) => (
-              <span
-                key={skill}
-                className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-card border border-border text-xs font-mono font-medium text-foreground shadow-xs transition-all hover:bg-muted"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </section>
+            <div className="flex flex-wrap gap-2 sm:gap-2.5 w-full">
+              {data.skills.map((skill) => (
+                <span
+                  key={skill}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-card border border-border text-xs font-mono font-medium text-foreground shadow-xs transition-all hover:bg-muted"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Education */}
-        <section className="space-y-6 w-full">
-          <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
-            <GraduationCap className="w-5 h-5 text-foreground shrink-0" />
-            <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              Education & Certification
-            </h2>
-          </div>
+        {hasEducation && (
+          <section className="space-y-6 w-full">
+            <div className="flex items-center space-x-2 border-b border-border pb-3 w-full">
+              <GraduationCap className="w-5 h-5 text-foreground shrink-0" />
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+                Education & Certification
+              </h2>
+            </div>
 
-          <div className="flex flex-col gap-3 w-full">
-            {data.education.map((edu, idx) => (
-              <div
-                key={idx}
-                className="bg-card border border-border p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm shadow-xs w-full"
-              >
-                <div>
-                  <h3 className="font-bold text-foreground text-sm sm:text-base">
-                    {edu.degree}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {edu.institution}
-                  </p>
+            <div className="flex flex-col gap-3 w-full">
+              {data.education.map((edu, idx) => (
+                <div
+                  key={idx}
+                  className="bg-card border border-border p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs sm:text-sm shadow-xs w-full"
+                >
+                  <div>
+                    <h3 className="font-bold text-foreground text-sm sm:text-base">
+                      {edu.degree}
+                    </h3>
+                    {edu.institution && (
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {edu.institution}
+                      </p>
+                    )}
+                  </div>
+                  {edu.year && (
+                    <span className="text-xs font-mono text-muted-foreground bg-muted px-2.5 py-1 rounded border border-border self-start sm:self-auto">
+                      {edu.year}
+                    </span>
+                  )}
                 </div>
-                <span className="text-xs font-mono text-muted-foreground bg-muted px-2.5 py-1 rounded border border-border self-start sm:self-auto">
-                  {edu.year}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       {/* Footer */}

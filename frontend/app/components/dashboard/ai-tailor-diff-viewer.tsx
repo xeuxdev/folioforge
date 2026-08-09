@@ -40,6 +40,8 @@ export function AiTailorDiffViewer() {
 
   const [activeRecord, setActiveRecord] = useState<TailoredRecord | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isSavingRecord, setIsSavingRecord] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
@@ -86,6 +88,30 @@ export function AiTailorDiffViewer() {
     }
   };
 
+  const handleExplicitSaveRecord = async () => {
+    if (!activeRecord) return;
+    setIsSavingRecord(true);
+    try {
+      const updated = await updateTailoredRecord({
+        id: activeRecord.id,
+        targetRole: activeRecord.targetRole,
+        targetCompany: activeRecord.targetCompany,
+        matchedKeywords: activeRecord.matchedKeywords,
+        missingKeywords: activeRecord.missingKeywords,
+        bulletDiffs: activeRecord.bulletDiffs,
+      });
+      setActiveRecord(updated);
+      setToastMessage("Tailored resume saved and master resumes updated!");
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 4000);
+    } catch (err) {
+      console.error("Failed to save tailored record:", err);
+    } finally {
+      setIsSavingRecord(false);
+    }
+  };
+
   const handleAnalyzeJob = async (
     jdText: string,
     newRoleTitle: string,
@@ -113,7 +139,7 @@ export function AiTailorDiffViewer() {
       const msg =
         apiErr?.errorData?.message ||
         apiErr?.message ||
-        "Failed to generate AI tailoring via LLM. Please verify server OpenAI credentials.";
+        "Failed to generate AI tailoring via LLM. Please verify server credentials.";
       setErrorMessage(msg);
     }
   };
@@ -167,7 +193,6 @@ export function AiTailorDiffViewer() {
   const handleUpdateDiffs = async (newDiffs: BulletDiffItem[]) => {
     if (!activeRecord) return;
 
-    // Extract any new keywords matched from newly accepted diffs
     const newlyAccepted = newDiffs.filter((d) => d.status === "accepted");
     const newlyMatchedKeywords = Array.from(
       new Set(newlyAccepted.flatMap((d) => d.matchedKeywords || [])),
@@ -209,40 +234,57 @@ export function AiTailorDiffViewer() {
   };
 
   return (
-    <div className="space-y-8">
-      {/* STEP 1: Primary Job Ingestion Form */}
+    <div className="space-y-8 relative">
+      {/* Toast Notification Popup */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-foreground text-background shadow-lg border border-border transition-all animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="text-xs font-medium">{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-2 text-background/70 hover:text-background transition-colors cursor-pointer"
+            aria-label="Close notification"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* STEP 1: Job Ingestion Form */}
       <JobIngestionForm
         onAnalyze={handleAnalyzeJob}
         isProcessing={isAnalyzing}
       />
 
-      {/* Error Alert Notification */}
+      {/* Error Alert */}
       {errorMessage && (
-        <div className="flex items-start space-x-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h4 className="font-semibold">AI Tailoring Error</h4>
-            <p className="text-xs opacity-90 leading-relaxed">{errorMessage}</p>
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-semibold text-xs uppercase tracking-wide">AI Tailoring Error</h4>
+            <p className="text-xs opacity-90 leading-relaxed mt-0.5">{errorMessage}</p>
           </div>
         </div>
       )}
 
+      {/* Processing Loader */}
       {isAnalyzing && (
-        <div className="flex flex-col items-center justify-center p-8 bg-card rounded-2xl border border-border text-center text-muted-foreground space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm font-medium">
-            Ingesting job description & processing LLM tailoring...
+        <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground space-y-3">
+          <Loader2 className="w-7 h-7 animate-spin text-foreground" />
+          <p className="text-sm font-medium text-foreground">
+            Analyzing job requirements & running LLM tailoring engine...
           </p>
         </div>
       )}
 
-      {/* STEP 2: Active Tailoring Analysis Results & Bullet Diff Viewer */}
+      {/* STEP 2: Active Results Analysis & Bullet Diffs */}
       {activeRecord && !isAnalyzing && (
-        <div id="active-analysis-section" className="space-y-6 pt-2">
-          {/* Active Record Controls Banner */}
-          <div className="bg-muted/40 border border-border p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-            <div className="flex items-center space-x-3 flex-1 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+        <div id="active-analysis-section" className="space-y-8 pt-2">
+          {/* Active Record Title & Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-foreground shrink-0">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div className="min-w-0 flex-1">
@@ -262,25 +304,25 @@ export function AiTailorDiffViewer() {
                       className="h-8 text-xs max-w-xs"
                       aria-label="Target Company Name"
                     />
-                    <div className="flex items-center space-x-1.5 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0">
                       <Button
-                        size="xs"
+                        size="sm"
                         onClick={handleSaveTitle}
                         disabled={isSavingTitle}
-                        className="text-xs font-semibold cursor-pointer"
+                        className="text-xs h-8 cursor-pointer"
                       >
                         <Save className="w-3.5 h-3.5 mr-1" />
-                        {isSavingTitle ? "Saving..." : "Save Title"}
+                        {isSavingTitle ? "Saving..." : "Save"}
                       </Button>
                       <Button
                         variant="ghost"
-                        size="xs"
+                        size="sm"
                         onClick={() => {
                           setIsEditingTitle(false);
                           setEditedRole(activeRecord.targetRole);
                           setEditedCompany(activeRecord.targetCompany);
                         }}
-                        className="text-xs cursor-pointer"
+                        className="text-xs h-8 cursor-pointer"
                         aria-label="Cancel editing title"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -288,67 +330,86 @@ export function AiTailorDiffViewer() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-0.5">
-                    <div className="flex items-center space-x-2 flex-wrap">
-                      <h3 className="text-sm font-bold text-foreground truncate">
-                        Active Tailored Result: {activeRecord.targetRole}
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-base font-semibold text-foreground truncate">
+                        {activeRecord.targetRole}
                       </h3>
-                      <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border shrink-0">
-                        {activeRecord.targetCompany}
+                      <span className="text-xs text-muted-foreground font-medium">
+                        at {activeRecord.targetCompany}
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="xs"
+                      <button
+                        type="button"
                         onClick={() => setIsEditingTitle(true)}
-                        className="text-xs text-muted-foreground hover:text-foreground h-6 px-1.5 cursor-pointer"
-                        title="Edit Role Title & Company"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer inline-flex items-center gap-1"
+                        title="Edit Role & Company"
                       >
-                        <Pencil className="w-3 h-3 mr-1" /> Edit
-                      </Button>
+                        <Pencil className="w-3 h-3" /> Edit
+                      </button>
                       {titleSaveSuccess && (
-                        <span className="inline-flex items-center text-xs text-emerald-600 font-medium font-mono">
-                          <Check className="w-3.5 h-3.5 mr-1" /> Saved!
+                        <span className="inline-flex items-center text-xs text-emerald-600 font-medium">
+                          <Check className="w-3.5 h-3.5 mr-1" /> Saved
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Inspecting matched keywords and line-by-line bullet
-                      optimizations.
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Reviewing keyword matches and line-by-line bullet optimizations.
                     </p>
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 shrink-0 self-end sm:self-auto">
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+              {/* Primary Save Button */}
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleExplicitSaveRecord}
+                disabled={isSavingRecord}
+                className="text-xs h-8 font-medium cursor-pointer"
+              >
+                {isSavingRecord ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                    Save Tailored Resume
+                  </>
+                )}
+              </Button>
+
               {isActiveRecord100Percent ? (
-                <span className="inline-flex items-center text-xs font-semibold font-mono text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 shrink-0">
+                <span className="inline-flex items-center text-xs font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20 shrink-0">
                   <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
                   100% ATS Matched
                 </span>
               ) : (
                 <Button
                   variant="outline"
-                  size="xs"
+                  size="sm"
                   onClick={() => handleRunAtsCheck(activeRecord)}
                   disabled={isEvaluatingAts}
-                  className="text-xs font-semibold cursor-pointer"
+                  className="text-xs h-8 font-medium cursor-pointer"
                 >
                   <FileCheck
-                    className={`w-3.5 h-3.5 mr-1.5 text-primary ${
+                    className={`w-3.5 h-3.5 mr-1.5 text-foreground ${
                       isEvaluatingAts ? "animate-spin" : ""
                     }`}
                   />
-                  {isEvaluatingAts ? "Re-checking ATS..." : "Run ATS Check"}
+                  {isEvaluatingAts ? "Evaluating..." : "Run ATS Check"}
                 </Button>
               )}
 
               <Button
                 variant="ghost"
-                size="xs"
+                size="sm"
                 onClick={() => handleDeleteRecord(activeRecord.id)}
                 disabled={isDeleting}
-                className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                className="text-xs h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                 title="Delete tailored resume"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -371,22 +432,20 @@ export function AiTailorDiffViewer() {
         </div>
       )}
 
-      {/* STEP 3: Saved Tailored Resumes History (Placed at the bottom) */}
+      {/* STEP 3: Saved History */}
       {history && history.length > 0 && (
-        <div className="pt-4 border-t border-border">
-          <TailoredHistoryList
-            history={history}
-            activeId={activeRecord?.id}
-            onSelectRecord={handleSelectHistoryRecord}
-            onRunAtsCheck={handleRunAtsCheck}
-            onDeleteRecord={handleDeleteRecord}
-            isEvaluating={isEvaluatingAts}
-            isDeleting={isDeleting}
-          />
-        </div>
+        <TailoredHistoryList
+          history={history}
+          activeId={activeRecord?.id}
+          onSelectRecord={handleSelectHistoryRecord}
+          onRunAtsCheck={handleRunAtsCheck}
+          onDeleteRecord={handleDeleteRecord}
+          isEvaluating={isEvaluatingAts}
+          isDeleting={isDeleting}
+        />
       )}
 
-      {/* Live PDF & DOCX Export Preview Modal */}
+      {/* PDF & DOCX Export Preview Modal */}
       {activeRecord && (
         <PdfExportPreviewModal
           isOpen={isExportModalOpen}

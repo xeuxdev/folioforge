@@ -5,6 +5,7 @@ import {
   FileText,
   SlidersHorizontal,
   Loader2,
+  Globe,
 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -22,11 +23,10 @@ function parseJobUrl(
     const parsedUrl = new URL(url);
     const path = parsedUrl.pathname;
 
-    // LinkedIn URLs: /jobs/view/senior-software-engineer-at-acme-3910284
     if (parsedUrl.hostname.includes("linkedin")) {
       const match = path.match(/\/jobs\/view\/([^/]+)/);
       if (match && match[1]) {
-        let slug = match[1].replace(/-\d+$/, "");
+        const slug = match[1].replace(/-\d+$/, "");
         if (slug.includes("-at-")) {
           const parts = slug.split("-at-");
           const role = parts[0]
@@ -46,7 +46,6 @@ function parseJobUrl(
       }
     }
 
-    // Greenhouse URLs
     if (parsedUrl.hostname.includes("greenhouse.io")) {
       const parts = path.split("/").filter(Boolean);
       if (parts.length > 0) {
@@ -57,7 +56,6 @@ function parseJobUrl(
       }
     }
 
-    // Lever URLs
     if (parsedUrl.hostname.includes("lever.co")) {
       const parts = path.split("/").filter(Boolean);
       if (parts.length > 0) {
@@ -68,7 +66,6 @@ function parseJobUrl(
       }
     }
 
-    // Generic URL fallback
     const segments = path
       .split("/")
       .filter((s) => s.length > 3 && !/^\d+$/.test(s));
@@ -101,6 +98,8 @@ export function JobIngestionForm({
   const [companyName, setCompanyName] = useState<string>("");
   const [jobUrl, setJobUrl] = useState<string>("");
   const [jdText, setJdText] = useState<string>("");
+  const [jobLocation, setJobLocation] = useState<"remote" | "hybrid" | "onsite">("remote");
+  const [portfolioUrl, setPortfolioUrl] = useState<string>("");
   const [intensity, setIntensity] = useState<
     "strict" | "balanced" | "aggressive"
   >("balanced");
@@ -121,8 +120,20 @@ export function JobIngestionForm({
     }
   };
 
+  const buildContextPrefix = () => {
+    const lines: string[] = [];
+    const locationLabel = { remote: "Remote", hybrid: "Hybrid", onsite: "On-site" }[jobLocation];
+    lines.push(`Job Location Type: ${locationLabel}`);
+    if (portfolioUrl.trim()) {
+      lines.push(`Candidate Portfolio URL: ${portfolioUrl.trim()}`);
+    }
+    return lines.join("\n");
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const contextPrefix = buildContextPrefix();
+
     if (activeInputTab === "url") {
       if (!jobUrl.trim()) return;
       const parsed = parseJobUrl(jobUrl);
@@ -132,95 +143,138 @@ export function JobIngestionForm({
         finalRole || finalCompany
           ? `${finalRole || "Position"} at ${finalCompany || "Company"}`
           : "Target Position";
-      const effectiveText = jdText.trim()
+      const baseText = jdText.trim()
         ? jdText
         : `Job Posting URL: ${jobUrl}\n${positionLabel}.\nPlease extract requirements from this job link and optimize CV bullet points for this position.`;
+      const effectiveText = contextPrefix ? `${contextPrefix}\n\n${baseText}` : baseText;
       onAnalyze(effectiveText, finalRole, finalCompany);
       return;
     }
 
     if (!jdText.trim()) return;
-    onAnalyze(jdText, roleTitle, companyName);
+    const effectiveText = contextPrefix ? `${contextPrefix}\n\n${jdText}` : jdText;
+    onAnalyze(effectiveText, roleTitle, companyName);
   };
 
   return (
-    <div className="bg-card border border-border p-6 rounded-2xl space-y-6 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+    <div className="space-y-6 pb-6 border-b border-border">
+      {/* Header Info */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center space-x-2">
-            <h2 className="text-xl font-bold text-foreground">
-              Job Description Ingestion & Constrained LLM Tailoring
-            </h2>
-          </div>
+          <h2 className="text-base font-semibold text-foreground">
+            Target Position & Job Description
+          </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Paste target job description text or URL to initiate factual keyword
-            matching and bullet optimization.
+            Ingest target JD details to perform keyword gap analysis and bullet point optimization.
           </p>
         </div>
 
-        <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-mono font-medium bg-muted text-muted-foreground border border-border shrink-0">
-          <Sparkles className="w-3.5 h-3.5 text-foreground" />
-          <span>Factual Truthfulness Guarantee</span>
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-muted text-muted-foreground border border-border shrink-0 self-start sm:self-auto">
+          <Sparkles className="w-3 h-3 text-foreground" />
+          <span>Truth Grounded Tailoring</span>
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Role & Company Inputs */}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Role Title & Company Input Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <Label className="text-xs text-muted-foreground">
-              Target Role Title
-            </Label>
+            <Label className="text-xs text-muted-foreground">Target Role Title</Label>
             <Input
               value={roleTitle}
               onChange={(e) => setRoleTitle(e.target.value)}
-              placeholder="e.g. Senior Full-Stack Engineer"
-              className="mt-1 text-xs"
+              placeholder="e.g. Senior Frontend Engineer"
+              className="mt-1 text-xs h-9"
             />
           </div>
           <div>
-            <Label className="text-xs text-muted-foreground">
-              Target Company / Organization
-            </Label>
+            <Label className="text-xs text-muted-foreground">Target Company</Label>
             <Input
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="e.g. Xeux Labs"
-              className="mt-1 text-xs"
+              placeholder="e.g. Acme Corp"
+              className="mt-1 text-xs h-9"
             />
           </div>
         </div>
 
-        {/* Input Method Toggle */}
+        {/* Location & Portfolio URL Input Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs text-muted-foreground">Job Location</Label>
+            <div
+              className="mt-1 flex rounded-lg border border-border overflow-hidden h-9"
+              role="group"
+              aria-label="Job location type"
+            >
+              {([
+                { value: "remote", label: "Remote" },
+                { value: "hybrid", label: "Hybrid" },
+                { value: "onsite", label: "On-site" },
+              ] as const).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setJobLocation(opt.value)}
+                  aria-pressed={jobLocation === opt.value}
+                  className={`flex-1 py-1.5 text-xs font-medium transition-colors cursor-pointer border-r border-border last:border-r-0 ${
+                    jobLocation === opt.value
+                      ? "bg-foreground text-background"
+                      : "bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs text-muted-foreground" htmlFor="portfolio-url-input">
+              <Globe className="inline w-3 h-3 mr-1 -mt-0.5 text-muted-foreground" />
+              Portfolio URL (optional)
+            </Label>
+            <Input
+              id="portfolio-url-input"
+              type="url"
+              value={portfolioUrl}
+              onChange={(e) => setPortfolioUrl(e.target.value)}
+              placeholder="https://yourportfolio.com"
+              className="mt-1 text-xs h-9"
+            />
+          </div>
+        </div>
+
+        {/* Ingestion Method Tabs & Textarea */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1.5">
               <Button
                 type="button"
                 variant={activeInputTab === "text" ? "secondary" : "ghost"}
-                size="xs"
+                size="sm"
                 onClick={() => handleTabSwitch("text")}
-                className="text-xs font-semibold cursor-pointer"
+                className="text-xs h-8 cursor-pointer"
               >
                 <FileText className="mr-1.5 w-3.5 h-3.5" />
-                Paste Raw JD Text
+                Raw JD Text
               </Button>
               <Button
                 type="button"
                 variant={activeInputTab === "url" ? "secondary" : "ghost"}
-                size="xs"
+                size="sm"
                 onClick={() => handleTabSwitch("url")}
-                className="text-xs font-semibold cursor-pointer"
+                className="text-xs h-8 cursor-pointer"
               >
                 <Link2 className="mr-1.5 w-3.5 h-3.5" />
-                Fetch Job URL
+                Job Link URL
               </Button>
             </div>
 
-            {/* Tailoring Intensity Preset */}
-            <div className="hidden sm:flex items-center space-x-2 text-xs text-muted-foreground">
+            {/* Tone Selector */}
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Tailoring Tone:</span>
+              <span>Tone:</span>
               <select
                 value={intensity}
                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
@@ -228,11 +282,11 @@ export function JobIngestionForm({
                     e.target.value as "strict" | "balanced" | "aggressive",
                   )
                 }
-                className="bg-muted border border-border rounded-lg px-2 py-1 text-xs text-foreground font-mono focus:outline-none"
+                className="bg-transparent border border-border rounded-md px-2 py-1 text-xs text-foreground font-medium focus:outline-none"
               >
-                <option value="strict">Strict Factual Alignment</option>
-                <option value="balanced">Balanced ATS Keyword Focus</option>
-                <option value="aggressive">High-Impact Leadership Tone</option>
+                <option value="strict">Strict Factual</option>
+                <option value="balanced">Balanced ATS</option>
+                <option value="aggressive">High-Impact</option>
               </select>
             </div>
           </div>
@@ -242,8 +296,8 @@ export function JobIngestionForm({
               rows={5}
               value={jdText}
               onChange={(e) => setJdText(e.target.value)}
-              placeholder="Paste target job description requirements, responsibilities, and qualifications..."
-              className="w-full p-3.5 rounded-xl bg-muted/40 border border-border text-xs text-foreground font-mono focus:outline-none focus:ring-2 focus:ring-ring leading-relaxed"
+              placeholder="Paste job description text, requirements, responsibilities..."
+              className="w-full p-3.5 rounded-xl bg-muted/20 border border-border text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-foreground leading-relaxed placeholder:text-muted-foreground/60"
             />
           ) : (
             <div className="space-y-2">
@@ -251,23 +305,22 @@ export function JobIngestionForm({
                 value={jobUrl}
                 onChange={(e) => handleUrlChange(e.target.value)}
                 placeholder="https://linkedin.com/jobs/view/... or Greenhouse / Lever URL"
-                className="text-xs font-mono"
+                className="text-xs h-9"
               />
               <p className="text-[11px] text-muted-foreground">
-                Automatically extracts role title and company name from
-                LinkedIn, Greenhouse, and Lever job links.
+                Extracts role title and company name from supported job posting links.
               </p>
             </div>
           )}
         </div>
 
-        {/* Form Action */}
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div className="text-xs text-muted-foreground font-mono">
+        {/* Submit Bar */}
+        <div className="flex items-center justify-between pt-1">
+          <span className="text-xs text-muted-foreground font-mono">
             {activeInputTab === "text"
-              ? `Input: ${jdText.split(/\s+/).filter(Boolean).length} words`
-              : `URL Mode Active`}
-          </div>
+              ? `${jdText.split(/\s+/).filter(Boolean).length} words`
+              : "URL Mode"}
+          </span>
 
           <Button
             type="submit"
@@ -275,12 +328,12 @@ export function JobIngestionForm({
               isProcessing ||
               (activeInputTab === "text" ? !jdText.trim() : !jobUrl.trim())
             }
-            className="text-xs font-semibold cursor-pointer"
+            className="text-xs h-9 px-4 font-medium cursor-pointer"
           >
             {isProcessing ? (
               <>
                 <Loader2 className="mr-1.5 w-3.5 h-3.5 animate-spin" />
-                Running LLM Keyword Matcher...
+                Analyzing JD & Running Tailoring Engine...
               </>
             ) : (
               <>

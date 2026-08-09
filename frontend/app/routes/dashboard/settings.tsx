@@ -3,10 +3,10 @@ import { AccountSettings } from "~/components/dashboard/account-settings";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "Account & Data Settings | Dashboard | FolioForge" },
+    { title: "Account Settings | Dashboard | FolioForge" },
     {
       name: "description",
-      content: "Account details, PostgreSQL data exports, and GDPR data deletion options.",
+      content: "Account details, data exports, and profile settings options.",
     },
   ];
 }

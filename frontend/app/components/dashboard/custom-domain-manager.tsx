@@ -58,7 +58,10 @@ function StatusBadge({
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${config.className}`}
     >
-      <Icon className={`w-3.5 h-3.5 shrink-0 ${config.iconClass}`} aria-hidden="true" />
+      <Icon
+        className={`w-3.5 h-3.5 shrink-0 ${config.iconClass}`}
+        aria-hidden="true"
+      />
       {config.label}
     </span>
   );
@@ -115,7 +118,11 @@ export function CustomDomainManager() {
 
   const validateDomain = (domain: string): string => {
     if (!domain.trim()) return "Please enter a domain name.";
-    const clean = domain.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    const clean = domain
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, "")
+      .replace(/\/.*$/, "");
     const domainRegex =
       /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i;
     if (!domainRegex.test(clean))
@@ -172,16 +179,19 @@ export function CustomDomainManager() {
   const dnsRecords = [
     {
       type: "CNAME",
-      host: customDomain?.includes(".") && customDomain.split(".").length > 2
-        ? customDomain.split(".")[0]
-        : "@",
+      host:
+        customDomain?.includes(".") && customDomain.split(".").length > 2
+          ? customDomain.split(".")[0]
+          : "@",
       value: "cname.folioforge.com",
       ttl: "3600",
       description: "Points your domain or subdomain to FolioForge servers",
     },
     {
       type: "TXT",
-      host: customDomain ? `_folioforge-challenge.${customDomain}` : "_folioforge-challenge",
+      host: customDomain
+        ? `_folioforge-challenge.${customDomain}`
+        : "_folioforge-challenge",
       value: verificationToken || "folioforge-verify-token",
       ttl: "3600",
       description: "TXT challenge record verifying domain ownership",
@@ -197,7 +207,7 @@ export function CustomDomainManager() {
   }
 
   return (
-    <div className="space-y-8 max-w-7xl w-full mx-auto">
+    <div className="space-y-8 w-full mx-auto">
       {/* Header */}
       <div className="space-y-1 border-b border-border pb-6">
         <div className="flex items-center gap-2.5">
@@ -209,7 +219,8 @@ export function CustomDomainManager() {
               Custom Domain Management
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Bind your custom domain name to your published FolioForge portfolio.
+              Bind your custom domain name to your published FolioForge
+              portfolio.
             </p>
           </div>
         </div>
@@ -221,7 +232,10 @@ export function CustomDomainManager() {
           Configure Custom Domain
         </h3>
         <div className="space-y-3">
-          <Label htmlFor="domain-input" className="text-xs text-muted-foreground font-medium">
+          <Label
+            htmlFor="domain-input"
+            className="text-xs text-muted-foreground font-medium"
+          >
             Domain Name
           </Label>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -249,7 +263,10 @@ export function CustomDomainManager() {
             >
               {isSettingDomain ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" aria-hidden="true" />
+                  <Loader2
+                    className="w-3.5 h-3.5 animate-spin mr-1.5"
+                    aria-hidden="true"
+                  />
                   Saving...
                 </>
               ) : (
@@ -258,12 +275,17 @@ export function CustomDomainManager() {
             </Button>
           </div>
           {inputError && (
-            <p id="domain-error" className="text-xs text-destructive font-medium" role="alert">
+            <p
+              id="domain-error"
+              className="text-xs text-destructive font-medium"
+              role="alert"
+            >
               {inputError}
             </p>
           )}
           <p className="text-[11px] font-mono text-muted-foreground">
-            Enter your custom apex domain or subdomain without http:// or trailing slashes.
+            Enter your custom apex domain or subdomain without http:// or
+            trailing slashes.
           </p>
         </div>
 
@@ -285,21 +307,34 @@ export function CustomDomainManager() {
 
         {!customDomain ? (
           <div className="bg-card border border-border p-8 rounded-2xl text-center space-y-2">
-            <Globe className="w-8 h-8 text-muted-foreground mx-auto" aria-hidden="true" />
-            <p className="text-sm font-semibold text-foreground">No custom domain configured yet.</p>
-            <p className="text-xs text-muted-foreground">Enter your domain name above to initiate DNS setup.</p>
+            <Globe
+              className="w-8 h-8 text-muted-foreground mx-auto"
+              aria-hidden="true"
+            />
+            <p className="text-sm font-semibold text-foreground">
+              No custom domain configured yet.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Enter your domain name above to initiate DNS setup.
+            </p>
           </div>
         ) : (
           <div className="bg-card border border-border p-6 sm:p-8 rounded-2xl space-y-6 shadow-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
               <div className="flex items-center gap-3 min-w-0">
-                <Globe className="w-5 h-5 text-foreground shrink-0" aria-hidden="true" />
+                <Globe
+                  className="w-5 h-5 text-foreground shrink-0"
+                  aria-hidden="true"
+                />
                 <div className="min-w-0">
                   <p className="text-base font-bold text-foreground font-mono truncate">
                     {customDomain}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Target URL: <code className="font-mono text-foreground font-semibold">https://{customDomain}</code>
+                    Target URL:{" "}
+                    <code className="font-mono text-foreground font-semibold">
+                      https://{customDomain}
+                    </code>
                   </p>
                 </div>
               </div>
@@ -330,9 +365,16 @@ export function CustomDomainManager() {
                     href={`https://${customDomain}`}
                     target="_blank"
                     rel="noreferrer"
-                    className={buttonVariants({ variant: "outline", size: "xs", className: "text-xs font-semibold" })}
+                    className={buttonVariants({
+                      variant: "outline",
+                      size: "xs",
+                      className: "text-xs font-semibold",
+                    })}
                   >
-                    <ExternalLink className="w-3.5 h-3.5 mr-1" aria-hidden="true" />
+                    <ExternalLink
+                      className="w-3.5 h-3.5 mr-1"
+                      aria-hidden="true"
+                    />
                     Visit
                   </a>
                 )}
@@ -368,12 +410,16 @@ export function CustomDomainManager() {
                       <span className="text-xs font-mono font-bold text-foreground bg-muted px-2 py-0.5 rounded border border-border">
                         {record.type}
                       </span>
-                      <span className="text-xs text-muted-foreground">{record.description}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {record.description}
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                       <div className="space-y-1">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Host / Name</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+                          Host / Name
+                        </p>
                         <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-2 font-mono font-semibold text-foreground truncate">
                           <span className="flex-1 truncate">{record.host}</span>
                           <CopyButton value={record.host} />
@@ -381,15 +427,21 @@ export function CustomDomainManager() {
                       </div>
 
                       <div className="space-y-1 sm:col-span-1">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">Value / Points To</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+                          Value / Points To
+                        </p>
                         <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-2 font-mono font-semibold text-foreground min-w-0">
-                          <span className="flex-1 truncate">{record.value}</span>
+                          <span className="flex-1 truncate">
+                            {record.value}
+                          </span>
                           <CopyButton value={record.value} />
                         </div>
                       </div>
 
                       <div className="space-y-1">
-                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">TTL</p>
+                        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
+                          TTL
+                        </p>
                         <div className="flex items-center gap-1.5 bg-background border border-border rounded-lg px-3 py-2 font-mono font-semibold text-foreground">
                           <span className="flex-1">{record.ttl}</span>
                           <CopyButton value={record.ttl} />
@@ -406,18 +458,28 @@ export function CustomDomainManager() {
 
       {/* Default Subdomain URL Info Card */}
       <div className="bg-card border border-border p-6 rounded-2xl space-y-3 shadow-xs">
-        <h3 className="text-sm font-bold text-foreground">Default Subdomain URL</h3>
+        <h3 className="text-sm font-bold text-foreground">
+          Default Subdomain URL
+        </h3>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Your portfolio remains accessible via your default FolioForge subdomain URL:
+          Your portfolio remains accessible via your default FolioForge
+          subdomain URL:
         </p>
         <div className="flex items-center gap-2 bg-muted/50 border border-border px-4 py-2.5 rounded-xl font-mono text-sm text-foreground">
-          <Globe className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+          <Globe
+            className="w-4 h-4 text-muted-foreground shrink-0"
+            aria-hidden="true"
+          />
           <span>https://{defaultSubdomain}.folioforge.com</span>
           <a
             href={`/u/${defaultSubdomain}`}
             target="_blank"
             rel="noreferrer"
-            className={buttonVariants({ variant: "ghost", size: "xs", className: "ml-auto text-xs font-semibold" })}
+            className={buttonVariants({
+              variant: "ghost",
+              size: "xs",
+              className: "ml-auto text-xs font-semibold",
+            })}
           >
             Visit Subdomain
             <ExternalLink className="ml-1 w-3 h-3" aria-hidden="true" />

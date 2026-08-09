@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { Menu, Upload, Sparkles, ExternalLink } from "lucide-react";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Logo } from "../logo";
@@ -20,11 +21,12 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
   const [open, setOpen] = useState<boolean>(false);
 
   const navItems = [
-    { label: "Master Resume Graph", href: "/dashboard" },
-    { label: "Upload & Parse CV", href: "/dashboard/import" },
-    { label: "AI Tailoring Engine", href: "/dashboard/tailor" },
-    { label: "Portfolio Site", href: "/dashboard/portfolio" },
-    { label: "Account & Data", href: "/dashboard/settings" },
+    { label: "Master Resume", href: "/dashboard" },
+    { label: "Import Resume", href: "/dashboard/import" },
+    { label: "AI Resume Tailor", href: "/dashboard/tailor" },
+    { label: "Portfolio Builder", href: "/dashboard/portfolio" },
+    { label: "Custom Domains", href: "/dashboard/domains" },
+    { label: "Account Settings", href: "/dashboard/settings" },
   ];
 
   return (
@@ -44,9 +46,9 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
               </SheetHeader>
               <div className="flex flex-col space-y-2 pt-6">
                 {navItems.map((item) => (
-                  <a
+                  <Link
                     key={item.href}
-                    href={item.href}
+                    to={item.href}
                     onClick={() => setOpen(false)}
                     className={buttonVariants({
                       variant: currentPath === item.href ? "secondary" : "ghost",
@@ -54,7 +56,7 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
                     })}
                   >
                     {item.label}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </SheetContent>
@@ -75,8 +77,8 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
 
       {/* Quick Action Buttons */}
       <div className="flex items-center space-x-2 sm:space-x-3">
-        <a
-          href="/dashboard/import"
+        <Link
+          to="/dashboard/import"
           className={buttonVariants({
             variant: "outline",
             size: "sm",
@@ -85,9 +87,9 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
         >
           <Upload className="mr-1.5 w-3.5 h-3.5" />
           Import Resume
-        </a>
-        <a
-          href="/dashboard/tailor"
+        </Link>
+        <Link
+          to="/dashboard/tailor"
           className={buttonVariants({
             size: "sm",
             className: "text-xs font-semibold",
@@ -95,7 +97,7 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
         >
           <Sparkles className="mr-1.5 w-3.5 h-3.5" />
           Tailor for Job
-        </a>
+        </Link>
         <a
           href="https://alex.folioforge.com"
           target="_blank"
@@ -113,3 +115,4 @@ export function Topbar({ title, subtitle, currentPath }: TopbarProps) {
     </header>
   );
 }
+

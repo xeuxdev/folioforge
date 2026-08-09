@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, AlertTriangle } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   useEffect(() => {
     async function processAuthToken() {
@@ -18,9 +15,11 @@ export default function AuthCallback() {
       const queryMsg = searchParams.get("message");
 
       if (queryErr || queryMsg) {
-        setErrorCode(queryErr || "AUTH_ERROR");
-        setErrorMessage(
-          queryMsg || "Google authentication encountered an error. Please try again."
+        navigate(
+          `/login?error=${encodeURIComponent(queryErr || "auth_failed")}&message=${encodeURIComponent(
+            queryMsg || "Google authentication encountered an error. Please try again."
+          )}`,
+          { replace: true }
         );
         return;
       }
@@ -28,7 +27,12 @@ export default function AuthCallback() {
       // 2. Check for token hash fragment
       const hash = window.location.hash;
       if (!hash) {
-        setErrorMessage("No authentication payload found in callback request.");
+        navigate(
+          `/login?error=missing_payload&message=${encodeURIComponent(
+            "No authentication payload found in callback request."
+          )}`,
+          { replace: true }
+        );
         return;
       }
 
@@ -36,7 +40,12 @@ export default function AuthCallback() {
       const token = params.get("token");
 
       if (!token) {
-        setErrorMessage("Invalid authentication payload received.");
+        navigate(
+          `/login?error=invalid_payload&message=${encodeURIComponent(
+            "Invalid authentication token received."
+          )}`,
+          { replace: true }
+        );
         return;
       }
 
@@ -64,43 +73,15 @@ export default function AuthCallback() {
       } catch (err: unknown) {
         const msg =
           err instanceof Error ? err.message : "Authentication error occurred.";
-        setErrorMessage(msg);
+        navigate(
+          `/login?error=session_error&message=${encodeURIComponent(msg)}`,
+          { replace: true }
+        );
       }
     }
 
     void processAuthToken();
   }, [navigate, queryClient]);
-
-  if (errorMessage) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-foreground">
-        <div className="max-w-md w-full bg-card p-6 rounded-2xl border border-border shadow-md text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive mx-auto">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <h2 className="text-lg font-bold text-destructive">
-              Authentication Failed
-            </h2>
-            {errorCode && (
-              <span className="inline-block text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground border border-border">
-                Code: {errorCode}
-              </span>
-            )}
-            <p className="text-xs text-muted-foreground pt-1 leading-relaxed">
-              {errorMessage}
-            </p>
-          </div>
-          <Button
-            onClick={() => navigate("/login", { replace: true })}
-            className="w-full text-xs font-semibold cursor-pointer"
-          >
-            Return to Login
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 text-foreground">

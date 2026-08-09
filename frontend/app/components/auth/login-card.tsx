@@ -1,10 +1,44 @@
-import { ArrowLeft } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { Logo } from "../logo";
 import { Button } from "~/components/ui/button";
 import { useAuth } from "~/hooks/use-auth";
 
+function getErrorMessage(
+  error: string | null,
+  message: string | null,
+): string | null {
+  if (!error && !message) return null;
+
+  if (message && message.trim().length > 0) {
+    const lower = message.toLowerCase();
+    if (lower.includes("fetch failed") || lower.includes("econnrefused")) {
+      return "Unable to connect to the server.";
+    }
+    return message;
+  }
+
+  switch (error) {
+    case "connection_failed":
+    case "fetch_failed":
+      return "Unable to connect to the server.";
+    case "access_denied":
+      return "Google sign-in request was cancelled or denied.";
+    case "auth_failed":
+    case "auth_error":
+      return "Authentication failed. Please try signing in again.";
+    default:
+      return "An unexpected error occurred during sign-in. Please try again.";
+  }
+}
+
 export function LoginCard() {
   const { loginWithGoogle } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  const queryError = searchParams.get("error");
+  const queryMessage = searchParams.get("message");
+  const errorMessage = getErrorMessage(queryError, queryMessage);
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 text-foreground">
@@ -23,7 +57,7 @@ export function LoginCard() {
       </div>
 
       {/* Main Login Card */}
-      <div className="max-w-md w-full mx-auto my-auto bg-card text-card-foreground p-8 sm:p-10 rounded-2xl border border-border shadow-xs space-y-8">
+      <div className="max-w-md w-full mx-auto my-auto bg-card text-card-foreground p-8 sm:p-10 rounded-2xl border border-border shadow-xs space-y-6">
         {/* Logo & Header */}
         <div className="text-center space-y-3">
           <div className="flex justify-center mb-2">
@@ -33,9 +67,28 @@ export function LoginCard() {
             Sign in to FolioForge
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-            Manage your canonical resume graph, tailor bullet points, and publish self-hosted portfolios.
+            Manage your canonical resume graph, tailor bullet points, and
+            publish self-hosted portfolios.
           </p>
         </div>
+
+        {/* Error Alert Box */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm flex items-start space-x-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-left">
+              <p className="font-semibold text-xs uppercase tracking-wider">
+                Sign In Error
+              </p>
+              <p className="text-xs text-foreground/90 leading-relaxed font-normal">
+                {errorMessage}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Google Auth Button with shadcn Button */}
         <div className="space-y-4 pt-2">
@@ -76,7 +129,10 @@ export function LoginCard() {
       {/* Footer */}
       <div className="max-w-md w-full mx-auto text-center text-xs text-muted-foreground space-y-2">
         <div className="flex justify-center space-x-4">
-          <a href="/privacy" className="hover:text-foreground transition-colors">
+          <a
+            href="/privacy"
+            className="hover:text-foreground transition-colors"
+          >
             Privacy Policy
           </a>
           <span>&bull;</span>
@@ -84,7 +140,9 @@ export function LoginCard() {
             Terms of Service
           </a>
         </div>
-        <p>&copy; {new Date().getFullYear()} FolioForge. All rights reserved.</p>
+        <p>
+          &copy; {new Date().getFullYear()} FolioForge. All rights reserved.
+        </p>
       </div>
     </div>
   );

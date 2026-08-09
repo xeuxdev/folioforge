@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Link } from "react-router";
 import { NavMain } from "~/components/nav-main";
 import { NavSecondary } from "~/components/nav-secondary";
 import { NavUser } from "~/components/nav-user";
@@ -28,23 +29,22 @@ import { useAuth } from "~/hooks/use-auth";
 const data = {
   navMain: [
     {
-      title: "Master Resume Graph",
+      title: "Master Resume",
       url: "/dashboard",
       icon: <FileTextIcon className="size-4" />,
-      isActive: true,
     },
     {
-      title: "Upload & Parse CV",
+      title: "Import Resume",
       url: "/dashboard/import",
       icon: <UploadIcon className="size-4" />,
     },
     {
-      title: "AI Tailoring Engine",
+      title: "AI Resume Tailor",
       url: "/dashboard/tailor",
       icon: <SparklesIcon className="size-4" />,
     },
     {
-      title: "Portfolio Site",
+      title: "Portfolio Builder",
       url: "/dashboard/portfolio",
       icon: <GlobeIcon className="size-4" />,
     },
@@ -54,7 +54,7 @@ const data = {
       icon: <Link2Icon className="size-4" />,
     },
     {
-      title: "Account & Data",
+      title: "Account Settings",
       url: "/dashboard/settings",
       icon: <SettingsIcon className="size-4" />,
     },
@@ -92,7 +92,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<a href="/dashboard" />}>
+            <SidebarMenuButton size="lg" render={<Link to="/dashboard" />}>
               <Logo showText={false} />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-bold">FolioForge</span>
@@ -113,3 +113,4 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   );
 }
+

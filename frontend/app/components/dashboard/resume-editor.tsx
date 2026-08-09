@@ -555,6 +555,20 @@ export function ResumeEditor({
               className="mt-1"
             />
           </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Portfolio / Website URL
+            </label>
+            <Input
+              type="url"
+              value={graph.contactInfo.websiteUrl || ""}
+              onChange={(e) =>
+                handleContactChange("websiteUrl", e.target.value)
+              }
+              placeholder="https://yourportfolio.com"
+              className="mt-1"
+            />
+          </div>
         </div>
 
         <div>

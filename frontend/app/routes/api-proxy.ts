@@ -13,6 +13,25 @@ async function handleApiProxy(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const backendBaseUrl = process.env.BACKEND_URL || "http://localhost:8080";
 
+  // Check if request is a top-level browser document navigation or auth endpoint request
+  const isDocumentNavigation =
+    request.mode === "navigate" ||
+    request.headers.get("sec-fetch-dest") === "document" ||
+    (request.headers.get("accept") || "").includes("text/html") ||
+    url.pathname.startsWith("/api/v1/auth/") ||
+    url.pathname.startsWith("/api/auth/");
+
+  // Helper to redirect top-level errors to the login page UI
+  const redirectToLoginWithError = (
+    errorCode: string,
+    message: string,
+  ): Response => {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("error", errorCode);
+    loginUrl.searchParams.set("message", message);
+    return Response.redirect(loginUrl.toString(), 302);
+  };
+
   // 1. Session establishment endpoint: POST /api/auth/session
   if (url.pathname === "/api/auth/session" && request.method === "POST") {
     try {
@@ -133,6 +152,21 @@ async function handleApiProxy(request: Request): Promise<Response> {
       redirect: "manual",
     });
 
+    // Handle non-2xx/3xx error statuses on top-level document/auth navigation
+    if (isDocumentNavigation && backendResponse.status >= 400) {
+      let errorMsg = `Authentication error (${backendResponse.status})`;
+      try {
+        const errorJson = (await backendResponse.json()) as {
+          message?: string;
+          error?: string;
+        };
+        errorMsg = errorJson.message || errorJson.error || errorMsg;
+      } catch {
+        // Body was not JSON
+      }
+      return redirectToLoginWithError("auth_error", errorMsg);
+    }
+
     // Construct response back to frontend browser
     const responseHeaders = new Headers();
 
@@ -158,9 +192,26 @@ async function handleApiProxy(request: Request): Promise<Response> {
       headers: responseHeaders,
     });
   } catch (err: unknown) {
-    const errorMessage =
+    const rawErrorMessage =
       err instanceof Error ? err.message : "Proxy request failed";
-    return new Response(JSON.stringify({ error: errorMessage }), {
+
+    const isConnectionFailure =
+      rawErrorMessage.includes("fetch failed") ||
+      rawErrorMessage.includes("ECONNREFUSED");
+
+    const friendlyErrorMessage = isConnectionFailure
+      ? "Unable to connect to the server. Please try again later."
+      : rawErrorMessage;
+
+    // For document navigations or auth routes, redirect to login UI instead of rendering bare JSON
+    if (isDocumentNavigation) {
+      return redirectToLoginWithError(
+        isConnectionFailure ? "connection_failed" : "proxy_error",
+        friendlyErrorMessage,
+      );
+    }
+
+    return new Response(JSON.stringify({ error: friendlyErrorMessage }), {
       status: 502,
       headers: { "Content-Type": "application/json" },
     });

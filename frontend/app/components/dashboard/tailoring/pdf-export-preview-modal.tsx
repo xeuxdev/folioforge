@@ -159,6 +159,8 @@ export function PdfExportPreviewModal({
                   exportData.email,
                   exportData.phone,
                   exportData.portfolioUrl,
+                  exportData.linkedinUrl,
+                  exportData.githubUrl,
                 ]
                   .filter(Boolean)
                   .join(" • ")}
@@ -260,6 +262,34 @@ export function PdfExportPreviewModal({
               </div>
             )}
 
+            {/* Community Contributions & Leadership Section */}
+            {exportData.communityContributions &&
+              exportData.communityContributions.length > 0 && (
+                <div className="space-y-2">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-300 pb-1">
+                    Community Contributions & Leadership
+                  </h2>
+                  {exportData.communityContributions.map((comm, idx) => (
+                    <div key={idx} className="space-y-0.5 text-xs text-stone-700">
+                      <div className="font-bold text-stone-900">
+                        {comm.role}
+                        {comm.organization ? ` at ${comm.organization}` : ""}
+                        {comm.period ? (
+                          <span className="font-normal font-mono text-[11px] text-stone-600 ml-1">
+                            ({comm.period})
+                          </span>
+                        ) : null}
+                      </div>
+                      {comm.description && (
+                        <p className="text-stone-700 leading-relaxed">
+                          {comm.description}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
             {/* Certifications Section */}
             {exportData.certifications && exportData.certifications.length > 0 && (
               <div className="space-y-1.5">
@@ -287,6 +317,38 @@ export function PdfExportPreviewModal({
                     .map((l) => (l.fluency ? `${l.language} (${l.fluency})` : l.language))
                     .join(" • ")}
                 </p>
+              </div>
+            )}
+
+            {/* Publications Section */}
+            {exportData.publications && exportData.publications.length > 0 && (
+              <div className="space-y-1.5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-300 pb-1">
+                  Publications
+                </h2>
+                {exportData.publications.map((pub, idx) => (
+                  <p key={idx} className="text-xs text-stone-700 leading-relaxed">
+                    <strong>{pub.title}</strong>
+                    {pub.publisher ? ` — ${pub.publisher}` : ""}
+                    {pub.publicationDate ? ` (${pub.publicationDate})` : ""}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {/* Honors & Awards Section */}
+            {exportData.honorsAndAwards && exportData.honorsAndAwards.length > 0 && (
+              <div className="space-y-1.5">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-300 pb-1">
+                  Honors & Awards
+                </h2>
+                {exportData.honorsAndAwards.map((award, idx) => (
+                  <p key={idx} className="text-xs text-stone-700 leading-relaxed">
+                    <strong>{award.title}</strong>
+                    {award.issuer ? ` — ${award.issuer}` : ""}
+                    {award.date ? ` (${award.date})` : ""}
+                  </p>
+                ))}
               </div>
             )}
           </div>

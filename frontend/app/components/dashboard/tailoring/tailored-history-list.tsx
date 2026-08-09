@@ -24,24 +24,22 @@ export function TailoredHistoryList({
   if (!history || history.length === 0) return null;
 
   return (
-    <div className="bg-card border border-border p-6 rounded-2xl space-y-5 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-4">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <History className="w-5 h-5 text-primary" />
-            <h3 className="text-base font-bold text-foreground">
-              Saved Tailored Resumes ({history.length})
-            </h3>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Access past ATS resume tailoring sessions. Select any record to
-            inspect bullet diffs, export PDF/DOCX, run ATS evaluation, or
-            delete.
-          </p>
+    <div className="py-6 space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-border">
+        <div className="flex items-center gap-2">
+          <History className="w-4 h-4 text-muted-foreground shrink-0" />
+          <h3 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+            Saved Tailoring History ({history.length})
+          </h3>
         </div>
+        <p className="text-xs text-muted-foreground hidden sm:block">
+          Select any past session to load diffs or run ATS evaluation.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Clean list format */}
+      <div className="divide-y divide-border/60">
         {history.map((record) => {
           const isActive = record.id === activeId;
           const matchCount = (record.matchedKeywords || []).length;
@@ -60,64 +58,73 @@ export function TailoredHistoryList({
           return (
             <div
               key={record.id}
-              className={`p-4 rounded-xl border transition-all space-y-4 flex flex-col justify-between ${
-                isActive
-                  ? "bg-primary/5 border-primary/40 shadow-xs ring-1 ring-primary/20"
-                  : "bg-muted/30 hover:bg-muted/60 border-border"
+              className={`py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+                isActive ? "bg-muted/30 px-3 -mx-3 rounded-lg font-medium" : "hover:bg-muted/10 px-3 -mx-3 rounded-lg"
               }`}
             >
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <h4 className="text-sm font-bold text-foreground line-clamp-1">
-                    {record.targetRole}
-                  </h4>
-                  <div className="flex items-center space-x-1.5 shrink-0">
-                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20">
-                      {matchCount}/{totalTerms} Terms
+              {/* Info Column */}
+              <div className="flex items-center gap-3 min-w-0">
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h4 className="text-sm font-semibold text-foreground truncate">
+                      {record.targetRole}
+                    </h4>
+                    <span className="text-xs text-muted-foreground truncate">
+                      at {record.targetCompany}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteRecord(record.id)}
-                      disabled={isDeleting}
-                      title="Delete tailored resume"
-                      className="text-muted-foreground hover:text-destructive p-1 rounded-md hover:bg-destructive/10 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
                   </div>
-                </div>
-                <p className="text-xs font-medium text-muted-foreground line-clamp-1">
-                  {record.targetCompany}
-                </p>
-                <div className="flex items-center space-x-1.5 text-[11px] text-muted-foreground font-mono">
-                  <Clock className="w-3.5 h-3.5 shrink-0" />
-                  <span>{formattedDate}</span>
+
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                    <span className="inline-flex items-center gap-1 font-mono text-[11px]">
+                      <Clock className="w-3 h-3" />
+                      {formattedDate}
+                    </span>
+                    <span>•</span>
+                    <span className="font-mono text-[11px] text-emerald-600 font-medium">
+                      {matchCount}/{totalTerms} Terms Matched
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center space-x-2 pt-2 border-t border-border/50">
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
                 <Button
-                  variant={isActive ? "secondary" : "outline"}
-                  size="xs"
+                  variant={isActive ? "default" : "outline"}
+                  size="sm"
                   onClick={() => onSelectRecord(record)}
-                  className={`${is100Percent ? "w-full" : "w-1/2"} text-xs font-semibold cursor-pointer`}
+                  className="text-xs h-8 cursor-pointer"
                 >
                   <Eye className="w-3.5 h-3.5 mr-1.5" />
-                  {isActive ? "Loaded" : "Load Diff"}
+                  {isActive ? "Viewing" : "Load Diff"}
                 </Button>
+
                 {!is100Percent && (
                   <Button
                     variant="outline"
-                    size="xs"
+                    size="sm"
                     onClick={() => onRunAtsCheck(record)}
                     disabled={isEvaluating}
-                    className="w-1/2 text-xs font-semibold cursor-pointer"
+                    className="text-xs h-8 cursor-pointer"
                   >
                     <FileCheck className="w-3.5 h-3.5 mr-1.5" />
-                    Run ATS Check
+                    ATS Check
                   </Button>
                 )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDeleteRecord(record.id)}
+                  disabled={isDeleting}
+                  className="text-xs h-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Delete record"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
               </div>
             </div>
           );

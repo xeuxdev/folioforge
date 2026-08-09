@@ -1,5 +1,14 @@
 import { useState, useRef, type DragEvent, type ChangeEvent } from "react";
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  FileCheck2,
+  X,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { useResumes, type ResumeRecord } from "~/hooks/use-resumes";
 import { ApiError } from "~/lib/api-client";
@@ -9,7 +18,10 @@ interface ResumeUploaderProps {
   isUploading?: boolean;
 }
 
-export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeUploaderProps) {
+export function ResumeUploader({
+  onUploadSuccess,
+  isUploading = false,
+}: ResumeUploaderProps) {
   const { uploadResume, isUploading: isMutationUploading } = useResumes();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,12 +45,14 @@ export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeU
       file.name.endsWith(".docx");
 
     if (!isPdfOrDocx) {
-      setErrorMessage("Invalid format. Please upload a PDF or DOCX resume document.");
+      setErrorMessage(
+        "Invalid file type. Please select a PDF (.pdf) or Word (.docx) document.",
+      );
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setErrorMessage("File exceeds 10MB size limit. Please upload a smaller file.");
+      setErrorMessage("File exceeds the 10MB limit. Please select a smaller file.");
       return;
     }
 
@@ -70,9 +84,30 @@ export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeU
     }
   };
 
+  const handleUploadSubmit = async () => {
+    if (!selectedFile || loading) return;
+    setErrorMessage(null);
+    try {
+      const uploaded = await uploadResume({ file: selectedFile });
+      onUploadSuccess(uploaded);
+    } catch (err: unknown) {
+      let msg = "Failed to upload document. Please check connection and try again.";
+      if (err instanceof ApiError) {
+        if (typeof err.data === "object" && err.data && "message" in err.data) {
+          msg = String(err.data.message);
+        } else if (err.statusText) {
+          msg = err.statusText;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      setErrorMessage(msg);
+    }
+  };
+
   return (
     <div className="w-full space-y-4">
-      {/* Drop Zone Container */}
+      {/* Interactive Drop Surface */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -80,18 +115,18 @@ export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeU
         onClick={() => !loading && fileInputRef.current?.click()}
         tabIndex={0}
         role="button"
-        aria-label="Upload PDF or DOCX resume"
+        aria-label="Upload PDF or DOCX resume document"
         onKeyDown={(e) => {
           if (!loading && (e.key === "Enter" || e.key === " ")) {
             fileInputRef.current?.click();
           }
         }}
-        className={`border-2 border-dashed rounded-xl p-8 sm:p-12 text-center transition-all flex flex-col items-center justify-center space-y-4 ${
+        className={`relative group rounded-xl p-8 sm:p-12 text-center transition-all flex flex-col items-center justify-center space-y-4 border ${
           loading
-            ? "opacity-60 cursor-not-allowed border-muted bg-muted/20"
+            ? "opacity-60 cursor-not-allowed border-border bg-muted/20"
             : isDragOver
-              ? "border-primary bg-primary/5 shadow-sm cursor-pointer"
-              : "border-border hover:border-primary/50 hover:bg-muted/30 cursor-pointer"
+              ? "border-foreground bg-accent/40 cursor-pointer"
+              : "border-border/80 hover:border-foreground/40 bg-card hover:bg-muted/10 cursor-pointer"
         }`}
       >
         <input
@@ -103,101 +138,104 @@ export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeU
           className="hidden"
         />
 
-        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+        {/* Icon & File Visual State */}
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center text-foreground transition-transform group-hover:scale-105">
           {loading ? (
-            <Loader2 className="w-7 h-7 animate-spin text-primary" />
+            <Loader2 className="w-5 h-5 animate-spin text-foreground" />
           ) : selectedFile ? (
-            <FileText className="w-7 h-7 text-primary" />
+            <FileCheck2 className="w-5 h-5 text-foreground" />
           ) : (
-            <Upload className="w-7 h-7" />
+            <Upload className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
           )}
         </div>
 
         <div className="space-y-1.5 max-w-sm">
           {selectedFile ? (
-            <>
-              <p className="text-base font-semibold text-foreground truncate">
-                {selectedFile.name}
+            <div>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-sm font-semibold text-foreground truncate max-w-xs">
+                  {selectedFile.name}
+                </p>
+                {!loading && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedFile(null);
+                      setErrorMessage(null);
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Remove selected file"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB •{" "}
+                {loading ? "Extracting schema fields..." : "Ready to parse"}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB &bull;{" "}
-                {loading ? "Parsing document..." : "Ready for upload & parsing"}
-              </p>
-            </>
+            </div>
           ) : (
             <>
-              <p className="text-base font-medium text-foreground">
-                Drag and drop your CV here, or{" "}
-                <span className="text-primary font-semibold underline underline-offset-2">
+              <p className="text-sm font-medium text-foreground">
+                Drop your CV here, or{" "}
+                <span className="underline underline-offset-4 decoration-border group-hover:decoration-foreground transition-colors">
                   browse files
                 </span>
               </p>
               <p className="text-xs text-muted-foreground">
-                Supports PDF and DOCX formats up to 10MB limit
+                PDF or DOCX documents up to 10MB
               </p>
             </>
           )}
         </div>
+
+        {/* Format hints */}
+        <div className="flex items-center gap-2 pt-2 text-[11px] font-mono text-muted-foreground/70">
+          <span className="px-2 py-0.5 rounded bg-muted/60 border border-border/50">.PDF</span>
+          <span className="px-2 py-0.5 rounded bg-muted/60 border border-border/50">.DOCX</span>
+        </div>
       </div>
 
-      {/* Error Banner */}
+      {/* Error Message Alert */}
       {errorMessage && (
-        <div className="flex items-center space-x-2 text-sm text-destructive bg-destructive/10 p-3.5 rounded-lg border border-destructive/20">
+        <div className="flex items-center gap-2 text-xs text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Primary Action Button */}
       {selectedFile && (
-        <div className="flex justify-end space-x-3 pt-2">
-          <Button
+        <div className="flex items-center justify-between pt-2">
+          <button
             type="button"
-            variant="ghost"
             disabled={loading}
-            onClick={(e) => {
-              e.stopPropagation();
+            onClick={() => {
               setSelectedFile(null);
               setErrorMessage(null);
             }}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
           >
-            Clear
-          </Button>
+            Cancel
+          </button>
+
           <Button
             type="button"
             disabled={loading}
-            onClick={async (e) => {
-              e.stopPropagation();
-              if (!selectedFile || loading) return;
-              setErrorMessage(null);
-              try {
-                const uploaded = await uploadResume({ file: selectedFile });
-                onUploadSuccess(uploaded);
-              } catch (err: unknown) {
-                let msg = "Upload failed. Please check backend connection and try again.";
-                if (err instanceof ApiError) {
-                  if (typeof err.data === "object" && err.data && "message" in err.data) {
-                    msg = String(err.data.message);
-                  } else if (err.statusText) {
-                    msg = err.statusText;
-                  }
-                } else if (err instanceof Error) {
-                  msg = err.message;
-                }
-                setErrorMessage(msg);
-              }
-            }}
-            className="flex items-center space-x-2 cursor-pointer"
+            onClick={handleUploadSubmit}
+            className="cursor-pointer text-xs h-9 px-4 font-medium"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Uploading & Parsing CV...</span>
+                <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                Parsing CV into Resume Graph...
               </>
             ) : (
               <>
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Parse CV to Resume Graph</span>
+                <Sparkles className="w-3.5 h-3.5 mr-2" />
+                Parse & Import Document
               </>
             )}
           </Button>
@@ -206,4 +244,3 @@ export function ResumeUploader({ onUploadSuccess, isUploading = false }: ResumeU
     </div>
   );
 }
-
