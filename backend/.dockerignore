@@ -38,6 +38,3 @@ docker-compose.yml
 .DS_Store
 Thumbs.db
 
-# TypeScript source — production image only needs dist/
-src
-drizzle.config.ts
