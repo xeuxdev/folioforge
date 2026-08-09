@@ -13,6 +13,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware';
 
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpLoggingInterceptor } from './common/interceptors/http-logging.interceptor';
+
 @Module({
   imports: [
     // ─── Environment & Config ──────────────────────────────────────────────────
@@ -44,7 +47,13 @@ import { HttpLoggerMiddleware } from './common/middleware/http-logger.middleware
     PortfolioModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpLoggingInterceptor,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

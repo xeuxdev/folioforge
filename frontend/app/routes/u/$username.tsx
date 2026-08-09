@@ -1,9 +1,6 @@
 import { useSearchParams } from "react-router";
 import type { Route } from "./+types/$username";
 import { PortfolioViewer } from "~/components/portfolio/portfolio-viewer";
-import {
-  defaultPortfolioData,
-} from "~/components/portfolio/minimal-template";
 import { canonicalToPortfolioData } from "~/lib/portfolio-adapter";
 import type { PublicPortfolioPayload } from "~/types/portfolio";
 
@@ -37,7 +34,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export function meta({ loaderData, params }: Route.MetaArgs) {
   const username = params.username ?? "user";
-  const portfolio = loaderData?.portfolio as PublicPortfolioPayload | null | undefined;
+  const portfolio = loaderData?.portfolio as
+    | PublicPortfolioPayload
+    | null
+    | undefined;
 
   if (!portfolio) {
     return [
@@ -48,12 +48,10 @@ export function meta({ loaderData, params }: Route.MetaArgs) {
 
   const graph = portfolio.resumeGraph;
   const name = portfolio.name;
-  const role =
-    graph?.workExperiences?.[0]?.position ?? "Professional";
+  const role = graph?.workExperiences?.[0]?.position ?? "Professional";
 
   const summary =
-    graph?.summary ??
-    `${name}'s professional portfolio powered by FolioForge.`;
+    graph?.summary ?? `${name}'s professional portfolio powered by FolioForge.`;
 
   return [
     { title: `${name} | ${role} | FolioForge` },
@@ -63,16 +61,18 @@ export function meta({ loaderData, params }: Route.MetaArgs) {
   ];
 }
 
-export default function UserPortfolioRoute({ loaderData, params }: Route.ComponentProps) {
+export default function UserPortfolioRoute({
+  loaderData,
+  params,
+}: Route.ComponentProps) {
   const [searchParams] = useSearchParams();
   const username = params.username ?? "user";
-  const portfolio = loaderData?.portfolio as PublicPortfolioPayload | null | undefined;
+  const portfolio = loaderData?.portfolio as
+    | PublicPortfolioPayload
+    | null
+    | undefined;
 
-  const portfolioData =
-    portfolio?.resumeGraph
-      ? canonicalToPortfolioData(portfolio.resumeGraph)
-      : defaultPortfolioData;
-
+  const portfolioData = canonicalToPortfolioData(portfolio?.resumeGraph);
   const queryTheme = searchParams.get("theme");
   const selectedTheme =
     queryTheme === "minimal" || queryTheme === "executive"
