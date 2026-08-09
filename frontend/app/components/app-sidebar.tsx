@@ -1,3 +1,12 @@
+import {
+  Code2Icon,
+  FileTextIcon,
+  GlobeIcon,
+  Link2Icon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  UploadIcon,
+} from "lucide-react";
 import * as React from "react";
 import { Link } from "react-router";
 import { NavMain } from "~/components/nav-main";
@@ -12,19 +21,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
-import { Logo } from "./logo";
-import {
-  FileTextIcon,
-  UploadIcon,
-  SparklesIcon,
-  GlobeIcon,
-  SettingsIcon,
-  Code2Icon,
-  ShieldCheckIcon,
-  Link2Icon,
-} from "lucide-react";
-import { Separator } from "./ui/separator";
 import { useAuth } from "~/hooks/use-auth";
+import { Logo } from "./logo";
+import { Separator } from "./ui/separator";
 
 const data = {
   navMain: [
@@ -52,11 +51,6 @@ const data = {
       title: "Custom Domains",
       url: "/dashboard/domains",
       icon: <Link2Icon className="size-4" />,
-    },
-    {
-      title: "Account Settings",
-      url: "/dashboard/settings",
-      icon: <SettingsIcon className="size-4" />,
     },
   ],
   navSecondary: [
@@ -113,4 +107,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   );
 }
-

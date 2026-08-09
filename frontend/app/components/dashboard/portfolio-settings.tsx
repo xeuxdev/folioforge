@@ -78,6 +78,21 @@ export function PortfolioSettings() {
     }
   }, [preferences, user?.name]);
 
+  // Dirty state calculation
+  const initialTemplate = preferences?.selectedTemplate ?? "minimal";
+  const initialSubdomain =
+    preferences?.subdomain ??
+    user?.name?.toLowerCase().replace(/\s+/g, "-") ??
+    "";
+  const initialLlmTxt = preferences?.llmTxtEnabled ?? true;
+  const initialSelectedResumeId = preferences?.selectedResumeId ?? null;
+
+  const isPortfolioDirty =
+    selectedTemplate !== initialTemplate ||
+    subdomain !== initialSubdomain ||
+    llmTxtEnabled !== initialLlmTxt ||
+    selectedResumeId !== initialSelectedResumeId;
+
   // Parsed resumes available for portfolio source selection
   const parsedResumes = resumes.filter(
     (r) => r.parsingStatus === "completed" && r.parsedData,
@@ -121,6 +136,7 @@ export function PortfolioSettings() {
   };
 
   const handleSavePreferences = async () => {
+    if (!isPortfolioDirty) return;
     await updatePreferences({
       selectedTemplate,
       subdomain,
@@ -678,7 +694,11 @@ ${portfolioData.bio}`}
             <Button
               size="sm"
               onClick={handleSetCustomDomain}
-              disabled={isSettingDomain || !customDomainInput.trim()}
+              disabled={
+                isSettingDomain ||
+                !customDomainInput.trim() ||
+                customDomainInput.trim() === (activeCustomDomain || "")
+              }
               className="text-xs h-8 font-medium cursor-pointer shrink-0"
             >
               {isSettingDomain ? (
@@ -831,7 +851,7 @@ ${portfolioData.bio}`}
         <Button
           size="default"
           onClick={handleSavePreferences}
-          disabled={isUpdating}
+          disabled={isUpdating || !isPortfolioDirty}
           className="w-full sm:w-auto text-xs font-semibold cursor-pointer px-6 h-9"
         >
           {isUpdating ? (

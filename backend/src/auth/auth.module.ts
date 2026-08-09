@@ -3,13 +3,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { SessionGuard } from './guards/session.guard';
 import { UsersModule } from '../users/users.module';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [UsersModule],
+  imports: [UsersModule, StorageModule],
   controllers: [AuthController],
   providers: [AuthService, SessionGuard],
-  // Export both so other feature modules can protect routes
-  // without importing UsersModule again.
   exports: [AuthService, SessionGuard],
 })
 export class AuthModule {}

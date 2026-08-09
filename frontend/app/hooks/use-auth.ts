@@ -6,6 +6,7 @@ export interface User {
   id: string;
   email: string;
   name?: string | null;
+  username?: string | null;
   avatarUrl?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -23,11 +24,49 @@ export function useAuth() {
   });
 
   const logoutMutation = useMutation({
-    mutationFn: () => apiClient<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
+    mutationFn: () =>
+      apiClient<{ success: boolean }>("/api/auth/logout", { method: "POST" }),
     onSuccess: () => {
       queryClient.setQueryData(["auth", "me"], null);
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
       navigate("/login", { replace: true });
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: { name?: string; username?: string; avatarUrl?: string | null }) =>
+      apiClient<User>("/api/v1/auth/me", {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(["auth", "me"], updatedUser);
+    },
+  });
+
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Raw fetch for multipart form-data to preserve headers
+      const res = await fetch("/api/v1/auth/photo", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to upload profile photo");
+      }
+
+      return (await res.json()) as User;
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(["auth", "me"], updatedUser);
     },
   });
 
@@ -44,6 +83,10 @@ export function useAuth() {
     loginWithGoogle,
     logout: () => logoutMutation.mutate(),
     isLoggingOut: logoutMutation.isPending,
+    updateProfile: updateProfileMutation.mutateAsync,
+    isUpdatingProfile: updateProfileMutation.isPending,
+    uploadPhoto: uploadPhotoMutation.mutateAsync,
+    isUploadingPhoto: uploadPhotoMutation.isPending,
     refetchUser: () => userQuery.refetch(),
   };
 }

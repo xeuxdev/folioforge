@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
+import { useNavigate } from "react-router";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "~/components/ui/avatar"
+} from "~/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,14 +14,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu"
+} from "~/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "~/components/ui/sidebar"
-import { ChevronsUpDownIcon, SparklesIcon, BadgeCheckIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+} from "~/components/ui/sidebar";
+import {
+  ChevronsUpDownIcon,
+  SettingsIcon,
+  LogOutIcon,
+} from "lucide-react";
 
 export function NavUser({
   user,
@@ -34,6 +39,8 @@ export function NavUser({
   onLogout?: () => void;
 }) {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+
   const userName = user.name || user.email?.split("@")[0] || "User";
   const userEmail = user.email || "";
   const initials = userName
@@ -58,10 +65,13 @@ export function NavUser({
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">{userName}</span>
-              <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+              <span className="truncate text-xs text-muted-foreground">
+                {userEmail}
+              </span>
             </div>
             <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
+
           <DropdownMenuContent
             className="min-w-56 rounded-lg"
             side={isMobile ? "bottom" : "right"}
@@ -70,44 +80,41 @@ export function NavUser({
           >
             <DropdownMenuGroup>
               <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                  <Avatar>
+                <div className="flex items-center gap-2 px-1.5 py-2 text-left text-sm">
+                  <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatarUrl || undefined} alt={userName} />
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{userName}</span>
-                    <span className="truncate text-xs text-muted-foreground">{userEmail}</span>
+                    <span className="truncate font-semibold">{userName}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {userEmail}
+                    </span>
                   </div>
                 </div>
               </DropdownMenuLabel>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
+
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <SparklesIcon />
-                Upgrade to Pro
+              <DropdownMenuItem
+                onClick={() => navigate("/dashboard/settings")}
+                className="cursor-pointer flex items-center gap-2"
+              >
+                <SettingsIcon className="w-4 h-4 text-muted-foreground" />
+                <span>Account Settings</span>
               </DropdownMenuItem>
             </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheckIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-destructive focus:text-destructive">
-              <LogOutIcon />
-              Log out
+
+            <DropdownMenuItem
+              onClick={onLogout}
+              className="cursor-pointer text-destructive focus:text-destructive flex items-center gap-2"
+            >
+              <LogOutIcon className="w-4 h-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

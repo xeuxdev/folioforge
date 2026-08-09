@@ -11,6 +11,12 @@ import { Readable } from 'stream';
 export interface UploadResult {
   fileKey: string;
   bucket: string;
+  url: string;
+}
+
+export interface PhotoUploadResult {
+  fileKey: string;
+  publicUrl: string;
 }
 
 @Injectable()
@@ -18,9 +24,15 @@ export class StorageService {
   private readonly logger = new Logger(StorageService.name);
   private s3Client: S3Client | null = null;
   private readonly bucketName: string;
+  private readonly publicUrl: string;
 
   constructor() {
     this.bucketName = process.env.R2_BUCKET_NAME || 'folioforge-resumes';
+    this.publicUrl = (
+      process.env.R2_PUBLIC_URL ||
+      process.env.PUBLIC_STORAGE_URL ||
+      ''
+    ).replace(/\/$/, '');
 
     const accountId = process.env.R2_ACCOUNT_ID;
     const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -50,7 +62,7 @@ export class StorageService {
       );
     } else {
       this.logger.warn(
-        'Cloudflare R2 credentials missing or incomplete. StorageService running in fallback/local mode.',
+        'Cloudflare R2 credentials missing or incomplete. StorageService running in fallback mode.',
       );
     }
   }
@@ -66,12 +78,15 @@ export class StorageService {
       '_',
     );
     const fileKey = `resumes/${params.userId}/${randomUUID()}-${sanitizedFilename}`;
+    const url = this.publicUrl
+      ? `${this.publicUrl}/${fileKey}`
+      : `/api/v1/auth/photos/${fileKey.replace('resumes/', '')}`;
 
     if (!this.s3Client) {
       this.logger.warn(
         `Fallback mode: Simulating upload for fileKey: ${fileKey}`,
       );
-      return { fileKey, bucket: this.bucketName };
+      return { fileKey, bucket: this.bucketName, url };
     }
 
     try {
@@ -84,13 +99,67 @@ export class StorageService {
 
       await this.s3Client.send(command);
       this.logger.log(`Uploaded file to Cloudflare R2: ${fileKey}`);
-      return { fileKey, bucket: this.bucketName };
+      return { fileKey, bucket: this.bucketName, url };
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown S3 error';
       this.logger.error(
         `Failed to upload file to Cloudflare R2 (${message}). Operating in fallback mode for fileKey: ${fileKey}`,
       );
-      return { fileKey, bucket: this.bucketName };
+      return { fileKey, bucket: this.bucketName, url };
+    }
+  }
+
+  /**
+   * Uploads a file buffer to R2 and returns object key + public URL.
+   */
+  async uploadPhoto(params: {
+    buffer: Buffer;
+    originalFilename: string;
+    mimeType: string;
+    userId: string;
+  }): Promise<PhotoUploadResult> {
+    const sanitizedFilename = params.originalFilename.replace(
+      /[^a-zA-Z0-9.-]/g,
+      '_',
+    );
+    const ext = sanitizedFilename.split('.').pop() || 'jpg';
+    const photoName = `user-${params.userId}-${randomUUID()}.${ext}`;
+    const fileKey = `photos/${photoName}`;
+
+    // If R2_PUBLIC_URL environment variable is set (e.g. https://pub-xxx.r2.dev or custom domain),
+    // returns `${this.publicUrl}/${fileKey}` directly.
+    // If unconfigured, falls back to endpoint route so images load without S3 authorization XML errors.
+    const publicUrl = this.publicUrl
+      ? `${this.publicUrl}/${fileKey}`
+      : `/api/v1/auth/photos/${photoName}`;
+
+    if (!this.s3Client) {
+      this.logger.warn(
+        `Fallback mode: Simulating photo upload under photos/ for key: ${fileKey}`,
+      );
+      return { fileKey, publicUrl };
+    }
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: this.bucketName,
+        Key: fileKey,
+        Body: params.buffer,
+        ContentType: params.mimeType,
+      });
+
+      await this.s3Client.send(command);
+      this.logger.log(
+        `Uploaded profile photo to Cloudflare R2 under photos/: ${fileKey}`,
+      );
+
+      return { fileKey, publicUrl };
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Unknown S3 error';
+      this.logger.error(
+        `Failed to upload photo to Cloudflare R2 (${message}).`,
+      );
+      return { fileKey, publicUrl };
     }
   }
 

@@ -1,10 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, BadRequestException } from '@nestjs/common';
 import { eq, or } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { InferSelectModel } from 'drizzle-orm';
 import { DRIZZLE_TOKEN } from '../database/database.module';
 import { users } from '../database/schema';
 import * as schema from '../database/schema';
+import { RESERVED_USERNAMES } from 'src/common/reserved';
 
 export type User = InferSelectModel<typeof users>;
 
@@ -37,43 +38,44 @@ export class UsersService {
     const result = await this.db
       .select()
       .from(users)
-      .where(eq(users.username, username))
+      .where(eq(users.username, username.toLowerCase()))
       .limit(1);
     return result[0];
   }
 
   /**
    * Generates a URL-safe slug from a full name.
-   * e.g. "Alex Morgan" => "alex-morgan"
    */
   private slugifyName(name: string): string {
-    return name
+    const slug = name
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+    return slug || 'user';
   }
 
   /**
    * Finds an available username slug derived from the user's name.
-   * If "alex-morgan" is taken, tries "alex-morgan-2", "alex-morgan-3", etc.
    */
   private async findAvailableUsername(
     base: string,
     excludeGoogleId: string,
   ): Promise<string> {
+    const cleanBase = RESERVED_USERNAMES.has(base) ? `cv-${base}` : base;
+
     const existing = await this.db
       .select({ username: users.username, googleId: users.googleId })
       .from(users)
-      .where(or(eq(users.username, base)));
+      .where(or(eq(users.username, cleanBase)));
 
     const taken = existing.filter((u) => u.googleId !== excludeGoogleId);
 
-    if (taken.length === 0) return base;
+    if (taken.length === 0) return cleanBase;
 
     let counter = 2;
     while (true) {
-      const candidate = `${base}-${counter}`;
+      const candidate = `${cleanBase}-${counter}`;
       const conflict = await this.db
         .select({ id: users.id })
         .from(users)
@@ -86,9 +88,35 @@ export class UsersService {
   }
 
   /**
-   * Creates a new user or updates name, avatarUrl if the Google account
-   * already exists. Auto-generates a unique username slug on first login.
-   * Returns the persisted user row.
+   * Validates username string against reserved list and character rules.
+   */
+  validateUsernameFormat(username: string): string {
+    const clean = username.trim().toLowerCase();
+
+    if (clean.length < 3) {
+      throw new BadRequestException(
+        'Username must be at least 3 characters long.',
+      );
+    }
+    if (clean.length > 30) {
+      throw new BadRequestException('Username cannot exceed 30 characters.');
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(clean)) {
+      throw new BadRequestException(
+        'Username can only contain lowercase letters, numbers, and single hyphens.',
+      );
+    }
+    if (RESERVED_USERNAMES.has(clean)) {
+      throw new BadRequestException(
+        `The username '${clean}' is reserved and cannot be claimed.`,
+      );
+    }
+
+    return clean;
+  }
+
+  /**
+   * Creates a new user or updates name, avatarUrl if the Google account exists.
    */
   async upsertGoogleUser(params: {
     googleId: string;
@@ -96,7 +124,6 @@ export class UsersService {
     name: string;
     avatarUrl: string | null;
   }): Promise<User> {
-    // Check if user already exists (so we only auto-generate a slug for new users)
     const existing = await this.findByGoogleId(params.googleId);
 
     let usernameSlug: string | undefined;
@@ -120,12 +147,48 @@ export class UsersService {
           name: params.name,
           avatarUrl: params.avatarUrl,
           updatedAt: new Date(),
-          // Only set username if it was not already assigned
           ...(usernameSlug ? { username: usernameSlug } : {}),
         },
       })
       .returning();
 
     return user;
+  }
+
+  /**
+   * Updates user name, username, or avatar URL with strict validation.
+   */
+  async updateUserProfile(
+    userId: string,
+    updates: { name?: string; username?: string; avatarUrl?: string | null },
+  ): Promise<User> {
+    let cleanUsername: string | undefined;
+
+    if (updates.username !== undefined && updates.username.trim() !== '') {
+      cleanUsername = this.validateUsernameFormat(updates.username);
+
+      // Check if another user already claimed this username
+      const existing = await this.findByUsername(cleanUsername);
+      if (existing && existing.id !== userId) {
+        throw new BadRequestException(
+          `The username '${cleanUsername}' is already taken by another account.`,
+        );
+      }
+    }
+
+    const [updated] = await this.db
+      .update(users)
+      .set({
+        ...(updates.name !== undefined ? { name: updates.name } : {}),
+        ...(cleanUsername !== undefined ? { username: cleanUsername } : {}),
+        ...(updates.avatarUrl !== undefined
+          ? { avatarUrl: updates.avatarUrl }
+          : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return updated;
   }
 }
