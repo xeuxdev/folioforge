@@ -8,8 +8,6 @@ interface PortfolioViewerProps {
   username?: string;
   user?: User;
   template?: PortfolioTemplateType;
-  /** @deprecated use template instead */
-  initialTemplate?: PortfolioTemplateType;
 }
 
 export function PortfolioViewer({
@@ -17,9 +15,8 @@ export function PortfolioViewer({
   username = "alex",
   user,
   template,
-  initialTemplate = "minimal",
 }: PortfolioViewerProps) {
-  const activeTemplate = template ?? initialTemplate;
+  const activeTemplate = template;
   const effectiveUser: User | undefined =
     user ??
     (username

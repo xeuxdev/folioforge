@@ -55,7 +55,11 @@ export function canonicalToPortfolioData(
 
   const education = (graph.education ?? []).map((edu) => {
     const degree = [edu.degree, edu.fieldOfStudy].filter(Boolean).join(" in ");
-    const year = [edu.startDate, edu.endDate].filter(Boolean).join(" - ") || edu.endDate || edu.startDate || "";
+    const year =
+      [edu.startDate, edu.endDate].filter(Boolean).join(" - ") ||
+      edu.endDate ||
+      edu.startDate ||
+      "";
     return {
       degree: degree || edu.degree || edu.institution || "Education Record",
       institution: edu.institution || "",
@@ -84,7 +88,7 @@ export function canonicalToPortfolioData(
     bio: graph.summary || "",
     email: contact.email || "",
     location: contact.location || "",
-    avatarUrl: contact.avatarUrl || overrides?.avatarUrl,
+    avatarUrl: overrides?.avatarUrl,
     githubUrl: contact.githubUrl || "",
     portfolioUrl: contact.websiteUrl || "",
     linkedinUrl: contact.linkedinUrl || "",

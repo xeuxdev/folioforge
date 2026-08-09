@@ -33,7 +33,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export function meta({ loaderData, params }: Route.MetaArgs) {
-  const username = params.username ?? "user";
   const portfolio = loaderData?.portfolio as
     | PublicPortfolioPayload
     | null
@@ -72,7 +71,12 @@ export default function UserPortfolioRoute({
     | null
     | undefined;
 
-  const portfolioData = canonicalToPortfolioData(portfolio?.resumeGraph);
+  console.log(portfolio, "portfolio");
+  const portfolioData = canonicalToPortfolioData(
+    portfolio?.resumeGraph,
+    portfolio?.avatarUrl ? { avatarUrl: portfolio.avatarUrl } : undefined,
+  );
+  console.log(portfolioData, "portfoliodata");
   const queryTheme = searchParams.get("theme");
   const selectedTheme =
     queryTheme === "minimal" || queryTheme === "executive"
