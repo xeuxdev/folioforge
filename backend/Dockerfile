@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy only the files needed to resolve and install dependencies first.
 # This layer is cached as long as these files don't change.
-COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # --frozen-lockfile ensures the lockfile is never mutated inside Docker.
 # Scripts are enabled so native addons (esbuild) can build their binaries
@@ -30,7 +30,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Install production-only dependencies into a clean layer
-COPY package.json pnpm-lock.yaml .npmrc pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 # Pull the compiled output from the builder stage
