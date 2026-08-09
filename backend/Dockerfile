@@ -40,4 +40,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE ${PORT:-8080}
 
 # Run the compiled entry point directly — no ts-node overhead in production
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]
