@@ -4,7 +4,14 @@ import {
   Sparkles,
   Download,
   ExternalLink,
-  CheckCircle,
+  CheckCircle2,
+  Database,
+  Cpu,
+  Layers,
+  Globe,
+  FileText,
+  ShieldCheck,
+  Zap,
 } from "lucide-react";
 
 export function SolutionSection() {
@@ -13,66 +20,49 @@ export function SolutionSection() {
   const steps = [
     {
       number: "Step 01",
-      title: "Store Your Canonical Resume Graph",
+      title: "Store Your Master Resume Graph",
       description:
-        "Define your master history once. Roles, achievements, metrics, education, and technical skills are structured in clean JSON schema with strict Zod types.",
+        "Define your career history once. Roles, achievements, metrics, education, and technical skills are structured in a clean JSON schema with strict Zod types.",
       icon: FileCode,
-      codeSnippet: `// Canonical Resume Graph Schema
-export const ResumeSchema = z.object({
-  contact: ContactInfoSchema,
-  workExperience: z.array(WorkRoleSchema),
-  skills: z.array(z.string()),
-  education: z.array(EducationSchema),
-});`,
-      previewTitle: "Master Resume Graph",
     },
     {
       number: "Step 02",
-      title: "AI Job Description Tailoring",
+      title: "AI Job Description Alignment",
       description:
-        "Paste a target job posting. BullMQ worker queues call LLM models to highlight matching keywords and suggest bullet refinements in an explicit diff viewer.",
+        "Paste a target job posting. BullMQ worker queues invoke LLMs to extract key keywords and suggest bullet point refinements in an explicit diff viewer.",
       icon: Sparkles,
-      codeSnippet: `// Tailored CV Bullet Diff Example
-- "Managed team built services for user requests."
-+ "Architected microservices handling 2M+ daily active sessions with 99.99% uptime."`,
-      previewTitle: "Honest Keyword & Bullet Alignment",
     },
     {
       number: "Step 03",
-      title: "Dual Output: PDF + Hosted Portfolio",
+      title: "Dual Output: Vector PDF + Hosted Site",
       description:
-        "Export crisp vector PDFs and DOCX files for ATS job portals, while serving a responsive, SEO-optimized web portfolio at your custom subdomain.",
+        "Export crisp vector PDFs and DOCX files for ATS job portals, while hosting a responsive, SSL-secured web portfolio at your custom subdomain.",
       icon: Download,
-      codeSnippet: `// Dual Output Endpoints
-GET  /u/alexmorgan       -> Hostable Web Portfolio
-POST /api/cv/export-pdf  -> Vector PDF Stream via @react-pdf
-POST /api/cv/export-docx -> ATS Word Document Stream`,
-      previewTitle: "PDF Download & Web Portfolio",
     },
   ];
 
   return (
     <section
       id="solution"
-      className="py-20 bg-muted/50 border-y border-border px-4 sm:px-6 lg:px-12"
+      className="py-20 md:py-28 bg-muted/40 border-y border-border px-4 sm:px-6 lg:px-12"
     >
       <div className="max-w-7xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground bg-muted px-3 py-1 rounded-full border border-border">
             Act III: The Solution
           </span>
-          <h2 className="font-heading text-3xl sm:text-5xl text-foreground font-semibold mt-4 tracking-tight">
-            How FolioForge delivers speed, safety, and elegance.
+          <h2 className="font-heading text-3xl sm:text-5xl text-foreground font-bold mt-4 tracking-tight">
+            How FolioForge delivers speed, safety, and performance.
           </h2>
           <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Three simple steps transform fragmented resume notes into
-            ATS-tailored applications and live hosted portfolio websites.
+            Three streamlined steps transform fragmented notes into ATS-tailored applications and live portfolio websites.
           </p>
         </div>
 
-        {/* Step Selector Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          <div className="lg:col-span-5 space-y-4">
+        {/* Step Selector & Detailed Output Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          {/* Left Column: Interactive Step Buttons */}
+          <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
             {steps.map((step, idx) => {
               const Icon = step.icon;
               const isSelected = activeTab === idx;
@@ -83,12 +73,12 @@ POST /api/cv/export-docx -> ATS Word Document Stream`,
                   onClick={() => setActiveTab(idx)}
                   className={`w-full text-left p-6 rounded-2xl border transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-card border-border shadow-xs"
-                      : "bg-muted/30 border-transparent hover:bg-card/80"
+                      ? "bg-card border-primary ring-1 ring-primary"
+                      : "bg-card/60 border-border hover:bg-card hover:border-border"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-semibold text-muted-foreground uppercase tracking-wider">
+                    <span className="text-xs font-mono font-bold text-muted-foreground uppercase tracking-wider">
                       {step.number}
                     </span>
                     <Icon
@@ -106,37 +96,197 @@ POST /api/cv/export-docx -> ATS Word Document Stream`,
             })}
           </div>
 
-          {/* Interactive Code & Output Display */}
-          <div className="lg:col-span-7 bg-card text-card-foreground rounded-2xl p-6 shadow-xs border border-border space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
+          {/* Right Column: Rich Detailed Showcase Container */}
+          <div className="lg:col-span-7 bg-card text-card-foreground rounded-2xl p-6 border border-border flex flex-col justify-between space-y-6">
+            {/* Top Toolbar Header */}
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
                 <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
                 <div className="w-3 h-3 rounded-full bg-muted-foreground/30"></div>
-                <span className="ml-2 text-xs font-mono text-muted-foreground">
-                  {steps[activeTab].previewTitle}
+                <span className="ml-2 text-xs font-mono font-semibold text-foreground">
+                  {activeTab === 0 && "Canonical Zod Resume Graph Engine"}
+                  {activeTab === 1 && "BullMQ AI Keyword Alignment Engine"}
+                  {activeTab === 2 && "Vector PDF & Subdomain Portfolio Engine"}
                 </span>
               </div>
-              <span className="text-xs font-mono text-emerald-600 flex items-center space-x-1">
-                <CheckCircle className="w-3.5 h-3.5" />
+              <span className="text-xs font-mono text-emerald-700 font-semibold flex items-center space-x-1">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Validated Engine</span>
               </span>
             </div>
 
-            <pre className="font-mono text-xs text-foreground p-4 bg-muted/60 rounded-xl overflow-x-auto border border-border leading-relaxed">
-              <code>{steps[activeTab].codeSnippet}</code>
-            </pre>
+            {/* TAB 01 SHOWCASE: Master Resume Graph */}
+            {activeTab === 0 && (
+              <div className="space-y-4 flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                    <span>Schema Definition (TypeScript + Zod)</span>
+                    <span className="text-emerald-700 font-semibold">Strict Type Safety</span>
+                  </div>
+                  <pre className="font-mono text-xs text-foreground p-4 bg-muted rounded-xl overflow-x-auto border border-border leading-relaxed">
+                    <code>{`export const CanonicalResumeGraphSchema = z.object({
+  meta: z.object({ version: z.string(), updatedAt: z.string() }),
+  contact: z.object({ name: z.string(), email: z.string().email(), location: z.string() }),
+  workExperience: z.array(z.object({
+    id: z.string(),
+    company: z.string(),
+    role: z.string(),
+    period: z.string(),
+    bullets: z.array(z.string()),
+    skillsUsed: z.array(z.string()),
+  })),
+  projects: z.array(ProjectSchema),
+  skills: z.array(z.string()),
+});`}</code>
+                  </pre>
+                </div>
 
-            <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground border-t border-border">
+                {/* Graph Metadata Pills */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2 text-xs font-mono">
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Database Storage</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <Database className="w-3.5 h-3.5 text-foreground" />
+                      <span>PostgreSQL JSONB</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Validation</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Zod v3 Runtime</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1 col-span-2 sm:col-span-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Revision Control</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <Layers className="w-3.5 h-3.5 text-foreground" />
+                      <span>Immutable History</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 02 SHOWCASE: AI Alignment */}
+            {activeTab === 1 && (
+              <div className="space-y-4 flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                    <span>Job Posting Matcher & Diff Pipeline</span>
+                    <span className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      98% ATS Match
+                    </span>
+                  </div>
+
+                  {/* Visual Diff Box */}
+                  <div className="p-4 bg-muted rounded-xl border border-border space-y-2 text-xs font-mono">
+                    <div className="text-muted-foreground text-[10px] uppercase font-bold tracking-wider">
+                      Tailoring Job Description: Senior Distributed Systems Engineer
+                    </div>
+                    <div className="p-2.5 bg-background rounded-lg border border-border text-muted-foreground leading-relaxed">
+                      <span className="text-red-600 font-bold">- </span>
+                      "Maintained backend servers and wrote database queries for application endpoints."
+                    </div>
+                    <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-950 leading-relaxed font-semibold">
+                      <span className="text-emerald-700 font-bold">+ </span>
+                      "Architected Node.js & Redis microservices serving 2.4M+ daily active sessions with 99.99% uptime and &lt;45ms p99 latency."
+                    </div>
+                  </div>
+                </div>
+
+                {/* Worker Metrics Grid */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2 text-xs font-mono">
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Queue System</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <Cpu className="w-3.5 h-3.5 text-foreground" />
+                      <span>BullMQ Worker Stream</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Privacy Model</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <Zap className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Zero LLM Training Policy</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 03 SHOWCASE: Dual Export */}
+            {activeTab === 2 && (
+              <div className="space-y-4 flex-1 flex flex-col justify-between">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground font-mono">
+                    <span>Export Endpoints & Live Hosting Routes</span>
+                    <span className="text-emerald-700 font-semibold">Active Dual Stream</span>
+                  </div>
+
+                  {/* Endpoints Table */}
+                  <div className="bg-muted rounded-xl border border-border overflow-hidden text-xs font-mono">
+                    <div className="p-3 bg-background border-b border-border flex items-center justify-between">
+                      <span className="flex items-center space-x-2 font-semibold text-foreground">
+                        <Globe className="w-4 h-4 text-blue-600" />
+                        <span>GET /u/:username</span>
+                      </span>
+                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[10px] border border-emerald-200">
+                        Live Subdomain &bull; SSL
+                      </span>
+                    </div>
+                    <div className="p-3 bg-background border-b border-border flex items-center justify-between">
+                      <span className="flex items-center space-x-2 font-semibold text-foreground">
+                        <FileText className="w-4 h-4 text-emerald-600" />
+                        <span>POST /api/cv/export-pdf</span>
+                      </span>
+                      <span className="text-foreground bg-muted px-2 py-0.5 rounded text-[10px] border border-border">
+                        Vector PDF Stream
+                      </span>
+                    </div>
+                    <div className="p-3 bg-background flex items-center justify-between">
+                      <span className="flex items-center space-x-2 font-semibold text-foreground">
+                        <FileCode className="w-4 h-4 text-amber-600" />
+                        <span>GET /u/:username.llm.txt</span>
+                      </span>
+                      <span className="text-foreground bg-muted px-2 py-0.5 rounded text-[10px] border border-border">
+                        AI-Readable Profile
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Feature Chips */}
+                <div className="grid grid-cols-2 gap-2.5 pt-2 text-xs font-mono">
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">PDF Rendering</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>@react-pdf/renderer Engine</span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-muted/60 rounded-xl border border-border space-y-1">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Domain Proxy</div>
+                    <div className="font-semibold text-foreground flex items-center space-x-1">
+                      <Globe className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Caddy Managed TLS</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Footer Architecture Strip */}
+            <div className="pt-4 flex flex-wrap items-center justify-between text-xs text-muted-foreground border-t border-border gap-2 font-mono">
               <span>
-                Output Architecture: Type-safe TypeScript &bull; Express API
-                &bull; Redis &bull; BullMQ
+                Architecture: React Router v8 &bull; Express API &bull; Redis &bull; BullMQ
               </span>
               <a
                 href="/login"
-                className="text-foreground hover:underline font-medium flex items-center"
+                className="text-foreground hover:underline font-semibold flex items-center"
               >
-                Try It Free <ExternalLink className="ml-1 w-3 h-3" />
+                Try It Free <ExternalLink className="ml-1 w-3.5 h-3.5" />
               </a>
             </div>
           </div>

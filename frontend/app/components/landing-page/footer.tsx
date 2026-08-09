@@ -7,15 +7,13 @@ export function Footer() {
       <div className="max-w-7xl mx-auto space-y-12">
         {/* Multi-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
-          {/* Column 1: Brand Info (Spans 2 cols on lg) */}
+          {/* Column 1: Brand Info */}
           <div className="lg:col-span-2 space-y-5">
             <a href="#" className="inline-block">
               <Logo className="w-8 h-8" showText={true} />
             </a>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
-              The self-hosted, type-safe CV builder and portfolio generator.
-              Store your career history in a canonical JSON graph, tailor bullet
-              points accurately, and export ATS-perfect documents.
+              The self-hosted, type-safe CV builder and portfolio generator. Store your career history in a canonical JSON graph, tailor bullet points accurately, and export ATS-perfect documents.
             </p>
             <div className="flex items-center space-x-3 pt-2">
               <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -35,7 +33,7 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Column 2: Story & Features */}
+          {/* Column 2: Story & Navigation */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-foreground font-mono">
               Product Story
@@ -105,7 +103,7 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Legal & Privacy */}
+          {/* Column 4: Legal & Safety */}
           <div className="space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-foreground font-mono">
               Legal & Safety
@@ -151,8 +149,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>
-            &copy; {new Date().getFullYear()} FolioForge. Built for developers
-            by Xeux Labs.
+            &copy; {new Date().getFullYear()} FolioForge. Built for developers by Xeux Labs.
           </p>
 
           <div className="flex items-center space-x-4 font-mono text-[11px] text-muted-foreground">

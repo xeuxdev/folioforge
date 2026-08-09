@@ -86,7 +86,15 @@ export function Navbar({ onNavigate }: NavbarProps) {
         {/* Mobile Menu with shadcn Sheet */}
         <div className="md:hidden flex items-center">
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger render={<Button variant="ghost" size="icon" aria-label="Toggle navigation menu" />}>
+            <SheetTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Toggle navigation menu"
+                />
+              }
+            >
               <Menu className="w-6 h-6" />
             </SheetTrigger>
             <SheetContent side="right" className="p-6">
@@ -119,10 +127,22 @@ export function Navbar({ onNavigate }: NavbarProps) {
                   Pricing
                 </button>
                 <div className="pt-6 border-t border-border flex flex-col space-y-3">
-                  <a href="/login" className={buttonVariants({ variant: "outline", className: "w-full" })}>
+                  <a
+                    href="/login"
+                    className={buttonVariants({
+                      variant: "outline",
+                      className: "w-full",
+                    })}
+                  >
                     Sign In
                   </a>
-                  <a href="/login" className={buttonVariants({ variant: "default", className: "w-full" })}>
+                  <a
+                    href="/login"
+                    className={buttonVariants({
+                      variant: "default",
+                      className: "w-full",
+                    })}
+                  >
                     Start Free
                     <ArrowRight className="ml-1.5 w-4 h-4" />
                   </a>
